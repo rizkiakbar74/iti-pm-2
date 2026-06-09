@@ -1,0 +1,1168 @@
+[
+  {
+    "id": "TC001",
+    "title": "Successful login and dashboard access",
+    "description": "A valid user can log in and reach the authenticated dashboard.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Create a task for a project",
+    "description": "This test verifies that an authorized user can create a task with project, assignee, and deadline details and see it added to the task list.",
+    "category": "Task Workflow",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=tasks"
+      },
+      {
+        "type": "action",
+        "description": "Select a project"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the task title field with a unique task name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the task description field with a task description"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid task deadline"
+      },
+      {
+        "type": "action",
+        "description": "Select task assignees"
+      },
+      {
+        "type": "action",
+        "description": "Submit the task form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new task appears in the task list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Logout returns to the login page",
+    "description": "An authenticated user can end the session and return to the login screen.",
+    "category": "Logout",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the logout control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login page is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Submit proof for a task",
+    "description": "This test verifies that an assignee can submit proof with a note and see the task move into review status.",
+    "category": "Task Workflow",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/task-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the proof note field with a submission note"
+      },
+      {
+        "type": "action",
+        "description": "Attach proof using the file input"
+      },
+      {
+        "type": "action",
+        "description": "Submit the proof"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task is in review status"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Block unauthorized access to the Users page",
+    "description": "This test verifies that an unauthorized role is redirected away from the Users page instead of seeing user management controls.",
+    "category": "User Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=users"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user is redirected away from the Users page"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Review submitted proof",
+    "description": "This test verifies that a reviewer can approve or reject submitted proof and see the task status update.",
+    "category": "Task Workflow",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/task-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Review the submitted proof"
+      },
+      {
+        "type": "action",
+        "description": "Approve or reject the task"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task status is updated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Reopen an approved task with a reason",
+    "description": "This test verifies that an authorized user can reopen an approved task by providing a required reason and see the task return to active work.",
+    "category": "Task Workflow",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/task-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Provide a reopen reason"
+      },
+      {
+        "type": "action",
+        "description": "Reopen the approved task"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task returns to active work"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Create a project with members",
+    "description": "This test verifies that an authorized user can create a project with the required details and see it added to the project list.",
+    "category": "Project Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=projects"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the project title field with a unique project name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the project description field with a project description"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid project deadline"
+      },
+      {
+        "type": "action",
+        "description": "Select project members"
+      },
+      {
+        "type": "action",
+        "description": "Submit the project form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new project appears in the project list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Invalid login shows an error",
+    "description": "An invalid password prevents access and shows a visible authentication error.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with an invalid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a login error message is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Filter notifications by status",
+    "description": "This test verifies that a member can narrow the notifications inbox using a status filter and see the list update accordingly.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=notifications"
+      },
+      {
+        "type": "action",
+        "description": "Select a notification status filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the notifications list is narrowed to the selected status"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Mark a notification as read",
+    "description": "This test verifies that a user can mark an unread notification as read and see its unread state change in the inbox.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=notifications"
+      },
+      {
+        "type": "action",
+        "description": "Mark an unread notification as read"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the notification is shown as read"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Dashboard metrics and navigation are available after login",
+    "description": "A signed-in user can view dashboard metrics and navigate to other main sections from the sidebar.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the dashboard section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify KPI cards are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify deadline information is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Open project details and review project information",
+    "description": "This test verifies that an authorized user can open an existing project and view its details, members, tasks, progress, and status.",
+    "category": "Project Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=projects"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing project from the list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify project information is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify project members and task progress are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Delete a notification",
+    "description": "This test verifies that a user can delete a notification after confirmation and see it removed from the inbox.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=notifications"
+      },
+      {
+        "type": "action",
+        "description": "Delete a notification and confirm the action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the notification is removed from the inbox"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Task list is accessible from the main navigation",
+    "description": "After logging in, a user can open the tasks section from the sidebar and view the task list.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the tasks section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task list is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Open a linked notification target",
+    "description": "This test verifies that a user can open a notification and land on the linked project or task page.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=notifications"
+      },
+      {
+        "type": "action",
+        "description": "Open a notification that links to a record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the related project or task page is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Generate a deadline reminder",
+    "description": "This test verifies that a user can trigger deadline reminders from the Deadlines page and see a related notification appear.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=deadlines"
+      },
+      {
+        "type": "action",
+        "description": "Trigger a deadline reminder"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a related notification is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC018",
+    "title": "Repeated invalid login attempts trigger lockout",
+    "description": "Repeated failed sign-in attempts result in a temporary lockout message that blocks immediate retry.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with an invalid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a temporary lockout message is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC019",
+    "title": "Edit permitted project fields",
+    "description": "This test verifies that an authorized user can update editable project metadata and see the updated details afterward.",
+    "category": "Project Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/project-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Edit the project title field with a new unique project name"
+      },
+      {
+        "type": "action",
+        "description": "Edit the project description field with updated text"
+      },
+      {
+        "type": "action",
+        "description": "Submit the project changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated project details are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC020",
+    "title": "Create a user with an allowed role",
+    "description": "This test verifies that an authorized administrator can create a user with an allowed role and see the new user appear in the list.",
+    "category": "User Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=users"
+      },
+      {
+        "type": "action",
+        "description": "Open the user creation form"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the required user details"
+      },
+      {
+        "type": "action",
+        "description": "Submit the user form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new user appears in the user list"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC021",
+    "title": "View activity records for the current role",
+    "description": "This test verifies that an authenticated user can open the activity log and see role-appropriate activity records.",
+    "category": "Activity Log",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=activity"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify activity records are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC022",
+    "title": "Notifications inbox opens from the sidebar",
+    "description": "After logging in, a user can open the notifications inbox and view notification items.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the notifications section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify notification items are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC023",
+    "title": "Manage project members",
+    "description": "This test verifies that an authorized user can add or remove project members and see the member list update.",
+    "category": "Project Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/project-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Add or remove a project member when permitted"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the member change"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the member list is updated"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "Edit an existing user",
+    "description": "This test verifies that an authorized administrator can edit a user’s attributes or status and see the updated user record.",
+    "category": "User Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=users"
+      },
+      {
+        "type": "action",
+        "description": "Open an editable user record"
+      },
+      {
+        "type": "action",
+        "description": "Update the user attributes or status"
+      },
+      {
+        "type": "action",
+        "description": "Submit the user form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated user record is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "View task submission and review history",
+    "description": "This test verifies that a user can inspect the history of task submissions and reviews from the task detail page.",
+    "category": "Task Workflow",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/task-detail.php?id=:id"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify submission history is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify review history is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC026",
+    "title": "Filter activity by action actor or target",
+    "description": "This test verifies that a user can narrow the activity log using action, actor, and target filters and see matching records remain.",
+    "category": "Activity Log",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=activity"
+      },
+      {
+        "type": "action",
+        "description": "Apply an activity filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the activity list is narrowed to matching records"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC027",
+    "title": "Add a comment to a task",
+    "description": "This test verifies that an authorized participant can add a task comment and see it appear in the discussion.",
+    "category": "Task Comments",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/task-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Type a unique comment into the comment field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the comment form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new comment appears in the task discussion"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC028",
+    "title": "Reset a user password",
+    "description": "This test verifies that an authorized administrator can reset a user password and complete the reset flow from the Users page.",
+    "category": "User Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/index.php?page=users"
+      },
+      {
+        "type": "action",
+        "description": "Open a user password reset action"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the password reset"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the password reset is applied"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC029",
+    "title": "Archive a project when allowed",
+    "description": "This test verifies that an authorized user can archive a project and see it marked as archived.",
+    "category": "Project Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/project-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Archive the project when business rules allow it"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project is marked as archived"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC030",
+    "title": "Delete an allowed task comment",
+    "description": "This test verifies that an authorized user can delete an allowed comment after confirmation and see it removed from the discussion.",
+    "category": "Task Comments",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/login.php"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /itipm_php_mysql_starter/actions/task-detail.php?id=:id"
+      },
+      {
+        "type": "action",
+        "description": "Delete an allowed comment after confirmation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the comment is removed from the discussion"
+      }
+    ],
+    "priority": "Low"
+  }
+]
