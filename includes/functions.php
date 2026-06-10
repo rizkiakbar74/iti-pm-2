@@ -4,7 +4,21 @@ function e($value) {
 }
 
 function redirect($url) {
-    header("Location: {$url}");
+    if (!headers_sent()) {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header("Location: {$url}");
+        exit;
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    $target = json_encode((string)$url, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    echo '<script>window.location.replace(' . $target . ');</script>';
+    echo '<noscript><meta http-equiv="refresh" content="0;url=' . e($url) . '"></noscript>';
     exit;
 }
 

@@ -8,7 +8,7 @@ foreach ($assignableUsers as $candidate) {
 }
 
 $formError = '';
-$oldInput = ['title' => '', 'description' => '', 'deadline_at' => '', 'member_ids' => []];
+$oldInput = ['title' => '', 'description' => '', 'deadline_at' => date('Y-m-d', strtotime('+30 days')), 'member_ids' => []];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canCreateProject) {
     verify_csrf();
@@ -273,14 +273,15 @@ $hasActiveFilters = count($activeFilters) > 0;
 
 <?php if ($canCreateProject): ?>
 <div class="project-modal fixed inset-0 z-50 <?= $formError ? 'flex' : 'hidden' ?> items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
-    <form method="post" class="project-modal-panel max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/70 bg-white p-6 shadow-2xl">
+    <form method="post" class="project-modal-panel project-create-form">
         <?= csrf_field() ?>
-        <div class="flex items-start justify-between"><div><h3 class="text-2xl font-black">Buat Project Baru</h3><p class="text-sm text-slate-500">Tambahkan detail dan anggota project.</p></div><button class="close-project-modal grid h-9 w-9 place-items-center rounded-full bg-slate-100" type="button">×</button></div>
-        <?php if ($formError): ?><div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700"><?= e($formError) ?></div><?php endif; ?>
-        <div class="mt-5 grid gap-4 md:grid-cols-2"><label><span class="mb-1 block text-sm font-bold">Nama Project</span><input class="w-full rounded-xl border border-slate-200 px-4 py-3" name="title" required value="<?= e($oldInput['title']) ?>"></label><label><span class="mb-1 block text-sm font-bold">Deadline</span><input class="w-full rounded-xl border border-slate-200 px-4 py-3" name="deadline_at" type="date" required value="<?= e($oldInput['deadline_at']) ?>"></label></div>
-        <label class="mt-4 block"><span class="mb-1 block text-sm font-bold">Deskripsi</span><textarea class="w-full rounded-xl border border-slate-200 p-4" name="description" rows="3"><?= e($oldInput['description']) ?></textarea></label>
-        <div class="mt-5"><p class="text-sm font-black">Anggota Project</p><p class="text-xs text-slate-500">Pilih minimal satu anggota selain Anda.</p><div class="mt-3 grid gap-2 md:grid-cols-2"><?php foreach ($assignableUsers as $candidate): if ((int)$candidate['id'] === (int)$user['id']) continue; ?><label class="member-option flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-3 hover:border-orange-300"><input class="mt-1" type="checkbox" name="member_ids[]" value="<?= e($candidate['id']) ?>" <?= in_array((int)$candidate['id'], $oldInput['member_ids'], true) ? 'checked' : '' ?>><span><b class="block"><?= e($candidate['name']) ?></b><small class="text-slate-500"><?= e($candidate['role']) ?> - <?= e($candidate['unit']) ?></small></span></label><?php endforeach; ?></div></div>
-        <div class="mt-6 flex justify-end gap-3"><button class="close-project-modal rounded-xl border border-slate-200 px-5 py-3 font-bold" type="button">Batal</button><button class="rounded-xl bg-orange-600 px-6 py-3 font-black text-white">Buat Project</button></div>
+        <header class="project-create-header"><div><p>Project / Create Project</p><h3>Create Project</h3><span>Buat project baru untuk tim dan kelola dengan lebih terstruktur.</span></div><div><button class="close-project-modal project-create-back" type="button">Kembali</button><button class="project-create-save" type="submit">Simpan Project</button></div></header>
+        <?php if ($formError): ?><div class="project-create-error"><?= e($formError) ?></div><?php endif; ?>
+        <div class="project-create-layout"><div class="project-create-main">
+            <section class="project-create-card"><h4>Informasi Dasar</h4><label><span>Nama Project <b>*</b></span><input name="title" required value="<?= e($oldInput['title']) ?>" placeholder="Contoh: Sistem Informasi Akademik ITI"></label><label><span>Deskripsi Project</span><textarea name="description" rows="5" placeholder="Jelaskan tujuan, ruang lingkup, dan manfaat project ini..."><?= e($oldInput['description']) ?></textarea><small>Gunakan deskripsi yang jelas agar seluruh anggota memahami tujuan project.</small></label></section>
+            <section class="project-create-card"><h4>Team & Ownership</h4><div class="project-owner-field"><span>Project Manager</span><strong><i><?= e(strtoupper(substr($user['name'], 0, 1))) ?></i><span><b><?= e($user['name']) ?></b><small><?= e(role_label($user['role'])) ?> - <?= e($user['unit']) ?></small></span><em>Anda</em></strong></div><div class="project-member-section"><div class="project-member-heading"><div><p class="project-field-label">Team Member <b>*</b></p><small>Anggota tampil otomatis. Ketik lalu tekan Enter/Cari untuk mempersempit hasil.</small></div><strong><span data-member-selected-count>0</span> dipilih</strong></div><p class="project-member-validation" data-member-validation hidden>Pilih minimal satu anggota project.</p><div class="project-member-tools"><label><span>⌕</span><input data-member-search type="search" placeholder="Cari nama, role, atau unit..."><button data-member-search-button type="button">Cari</button></label><select data-member-role><option value="">Semua Role</option><?php foreach (array_values(array_unique(array_map(fn($candidate) => role_label($candidate['role']), $assignableUsers))) as $roleOption): ?><option value="<?= e(strtolower($roleOption)) ?>"><?= e($roleOption) ?></option><?php endforeach; ?></select><select data-member-unit><option value="">Semua Unit</option><?php foreach (array_values(array_unique(array_filter(array_map(fn($candidate) => $candidate['unit'], $assignableUsers)))) as $unitOption): ?><option value="<?= e(strtolower($unitOption)) ?>"><?= e($unitOption) ?></option><?php endforeach; ?></select></div><div class="project-member-tabs"><button class="is-active" data-member-tab="all" type="button">Semua Anggota</button><button data-member-tab="selected" type="button">Terpilih</button><button data-member-select-visible type="button">Pilih Hasil Filter</button><button data-member-clear type="button">Hapus Pilihan</button></div><div class="project-member-grid"><?php foreach ($assignableUsers as $candidate): if ((int)$candidate['id'] === (int)$user['id']) continue; $candidateRole=role_label($candidate['role']); ?><label class="member-option" data-member-name="<?= e(strtolower($candidate['name'])) ?>" data-member-role-value="<?= e(strtolower($candidateRole)) ?>" data-member-unit-value="<?= e(strtolower($candidate['unit'])) ?>"><input type="checkbox" name="member_ids[]" value="<?= e($candidate['id']) ?>" <?= in_array((int)$candidate['id'], $oldInput['member_ids'], true) ? 'checked' : '' ?>><span class="member-check"></span><i><?= e(strtoupper(substr($candidate['name'], 0, 1))) ?></i><span class="member-copy"><b><?= e($candidate['name']) ?></b><small><?= e($candidateRole) ?> - <?= e($candidate['unit']) ?></small></span><span class="member-selected">Dipilih</span></label><?php endforeach; ?><p class="project-member-empty" data-member-empty>Tidak ada anggota yang cocok.</p></div><div class="project-member-pagination"><button data-member-prev type="button">Sebelumnya</button><span data-member-page-info>Halaman 1 dari 1</span><button data-member-next type="button">Berikutnya</button></div></div></section>
+            <section class="project-create-card"><h4>Timeline</h4><label><span>Target Selesai <b>*</b></span><input name="deadline_at" type="date" required value="<?= e($oldInput['deadline_at']) ?>"></label><p class="project-timeline-note">Project akan langsung berstatus aktif setelah disimpan.</p></section>
+        </div><aside class="project-create-aside"><section class="project-create-card project-create-tips"><h4>Tips Membuat Project</h4><div><i>1</i><p><b>Gunakan nama yang jelas</b><span>Nama project harus mudah dipahami oleh seluruh tim.</span></p></div><div><i>2</i><p><b>Lengkapi informasi</b><span>Deskripsi lengkap membantu perencanaan yang lebih baik.</span></p></div><div><i>3</i><p><b>Atur timeline realistis</b><span>Pastikan target selesai sesuai estimasi pekerjaan.</span></p></div></section><section class="project-create-card project-create-summary"><h4>Ringkasan Project</h4><p><span>Nama Project</span><b data-summary-title>-</b></p><p><span>Project Manager</span><b><?= e($user['name']) ?></b></p><p><span>Team Member</span><b data-summary-members>0</b></p><p><span>Target Selesai</span><b data-summary-deadline>-</b></p><footer><span>Status Project</span><b><i></i>Akan Aktif</b></footer></section></aside></div>
     </form>
 </div>
 <?php endif; ?>
@@ -293,6 +294,76 @@ $hasActiveFilters = count($activeFilters) > 0;
     modal?.addEventListener('click', event => { if (event.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
     document.addEventListener('keydown', event => { if (event.key === 'Escape') { modal?.classList.add('hidden'); modal?.classList.remove('flex'); } });
     requestAnimationFrame(() => document.querySelectorAll('.project-progress').forEach(bar => bar.classList.add('is-ready')));
+    const createForm = document.querySelector('.project-create-form');
+    const updateSummary = () => {
+        if (!createForm) return;
+        createForm.querySelector('[data-summary-title]').textContent = createForm.querySelector('[name="title"]')?.value.trim() || '-';
+        createForm.querySelector('[data-summary-deadline]').textContent = createForm.querySelector('[name="deadline_at"]')?.value || '-';
+        createForm.querySelector('[data-summary-members]').textContent = createForm.querySelectorAll('[name="member_ids[]"]:checked').length;
+    };
+    createForm?.addEventListener('input', updateSummary);
+    createForm?.addEventListener('change', updateSummary);
+    updateSummary();
+    const memberOptions = [...(createForm?.querySelectorAll('.member-option') || [])];
+    const memberSearch = createForm?.querySelector('[data-member-search]');
+    const memberRole = createForm?.querySelector('[data-member-role]');
+    const memberUnit = createForm?.querySelector('[data-member-unit]');
+    const memberEmpty = createForm?.querySelector('[data-member-empty]');
+    const memberPageInfo = createForm?.querySelector('[data-member-page-info]');
+    const memberCount = createForm?.querySelector('[data-member-selected-count]');
+    const memberPerPage = 8;
+    let memberPage = 1;
+    let memberTab = 'all';
+    let memberQuery = '';
+    const filteredMembers = () => {
+        const role = memberRole?.value || '';
+        const unit = memberUnit?.value || '';
+        return memberOptions.filter(option => {
+            const checked = option.querySelector('input').checked;
+            const matchesQuery = !memberQuery || `${option.dataset.memberName} ${option.dataset.memberRoleValue} ${option.dataset.memberUnitValue}`.includes(memberQuery);
+            return matchesQuery && (!role || option.dataset.memberRoleValue === role) && (!unit || option.dataset.memberUnitValue === unit) && (memberTab !== 'selected' || checked);
+        });
+    };
+    const renderMembers = () => {
+        const visible = filteredMembers();
+        const pages = Math.max(1, Math.ceil(visible.length / memberPerPage));
+        memberPage = Math.min(memberPage, pages);
+        memberOptions.forEach(option => option.hidden = true);
+        visible.slice((memberPage - 1) * memberPerPage, memberPage * memberPerPage).forEach(option => option.hidden = false);
+        if (memberEmpty) memberEmpty.hidden = visible.length > 0;
+        if (memberPageInfo) memberPageInfo.textContent = `Halaman ${memberPage} dari ${pages}`;
+        const selectedCount = memberOptions.filter(option => option.querySelector('input').checked).length;
+        if (memberCount) memberCount.textContent = selectedCount;
+        const validation = createForm?.querySelector('[data-member-validation]');
+        if (validation && selectedCount > 0) validation.hidden = true;
+        const previousButton = createForm?.querySelector('[data-member-prev]');
+        const nextButton = createForm?.querySelector('[data-member-next]');
+        if (previousButton) previousButton.disabled = memberPage <= 1;
+        if (nextButton) nextButton.disabled = memberPage >= pages;
+        updateSummary();
+    };
+    const submitMemberSearch=()=>{memberQuery=memberSearch?.value.trim().toLowerCase()||'';memberPage=1;renderMembers()};
+    memberSearch?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();submitMemberSearch()}});
+    createForm?.querySelector('[data-member-search-button]')?.addEventListener('click',submitMemberSearch);
+    [memberRole,memberUnit].forEach(control => control?.addEventListener('change',()=>{memberPage=1;renderMembers()}));
+    createForm?.querySelectorAll('[data-member-tab]').forEach(button=>button.addEventListener('click',()=>{memberTab=button.dataset.memberTab;memberPage=1;createForm.querySelectorAll('[data-member-tab]').forEach(item=>item.classList.toggle('is-active',item===button));renderMembers()}));
+    createForm?.querySelector('[data-member-prev]')?.addEventListener('click',()=>{memberPage--;renderMembers()});
+    createForm?.querySelector('[data-member-next]')?.addEventListener('click',()=>{memberPage++;renderMembers()});
+    createForm?.querySelector('[data-member-select-visible]')?.addEventListener('click',()=>{filteredMembers().forEach(option=>option.querySelector('input').checked=true);renderMembers()});
+    createForm?.querySelector('[data-member-clear]')?.addEventListener('click',()=>{memberOptions.forEach(option=>option.querySelector('input').checked=false);renderMembers()});
+    memberOptions.forEach(option=>option.querySelector('input').addEventListener('change',renderMembers));
+    createForm?.addEventListener('submit',event=>{
+        const validation=createForm.querySelector('[data-member-validation]');
+        if(!memberOptions.some(option=>option.querySelector('input').checked)){
+            event.preventDefault();
+            if(validation)validation.hidden=false;
+            createForm.querySelector('.project-member-section')?.scrollIntoView({behavior:'smooth',block:'center'});
+            setTimeout(()=>createForm.classList.remove('is-submitting'),0);
+            return;
+        }
+        if(validation)validation.hidden=true;
+    });
+    renderMembers();
     if (new URLSearchParams(location.search).get('create') === '1') document.querySelector('.open-project-modal')?.click();
 })();
 </script>

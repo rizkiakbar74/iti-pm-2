@@ -1,4 +1,11 @@
 <?php
+ini_set('implicit_flush', '0');
+ob_implicit_flush(false);
+
+if (ob_get_level() === 0) {
+    ob_start();
+}
+
 $secureCookie = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
 if (session_status() === PHP_SESSION_NONE) {

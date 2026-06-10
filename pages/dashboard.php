@@ -460,7 +460,7 @@ if ($user['role'] === 'ADMIN') {
                 </div>
                 <svg class="pointer-events-none absolute left-[11%] right-[5%] top-[18%] h-[68%] w-[84%] overflow-visible" viewBox="0 0 600 140" preserveAspectRatio="none" aria-hidden="true"><polyline class="dashboard-progress-line" points="<?= e($progressPolyline) ?>" fill="none" stroke="#f15a24" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>
             </div>
-            <p class="mt-4 text-center text-[10px]"><i class="mr-2 inline-block h-2 w-2 rounded-full border-2 border-orange-500"></i>Rata-rata Progress</p>
+            <p class="mt-8 border-t border-slate-100 pt-4 text-center text-[10px]"><i class="mr-2 inline-block h-2 w-2 rounded-full border-2 border-orange-500"></i>Rata-rata Progress</p>
         </div>
 
         <div class="dashboard-card dashboard-reveal p-5 xl:col-span-3" style="--reveal-delay:380ms">
@@ -634,7 +634,7 @@ if ($user['role'] === 'ADMIN') {
 </script>
 <?php return; ?>
 
-<div class="dashboard-shell">
+<div class="dashboard-shell superadmin-dashboard">
 <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
     <div>
         <h2 class="text-2xl font-black tracking-tight text-slate-900">Dashboard Overview</h2>
@@ -655,9 +655,9 @@ if ($user['role'] === 'ADMIN') {
     </div>
 </div>
 
-<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+<div class="superadmin-kpi-grid grid gap-4 md:grid-cols-2 xl:grid-cols-5">
     <?php foreach ($cards as $card): ?>
-        <div class="dashboard-card p-4">
+        <div class="dashboard-card superadmin-kpi-card p-4">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="text-xs font-bold text-slate-500"><?= e($card['title']) ?></p>
@@ -690,31 +690,31 @@ if ($user['role'] === 'ADMIN') {
     <?php endforeach; ?>
 </div>
 
-<div class="mt-4 grid gap-4 md:grid-cols-4">
-    <div class="dashboard-card p-4">
+<div class="superadmin-summary-grid mt-5 grid gap-4 md:grid-cols-4">
+    <div class="dashboard-card superadmin-summary-card p-4">
         <p class="text-sm font-bold text-slate-500">Completion Rate</p>
         <strong class="mt-2 block text-3xl font-black text-green-700"><?= e($completionRate) ?>%</strong>
         <p class="text-xs font-bold text-slate-400"><?= e($done) ?> dari <?= e($totalTasks) ?> task verified</p>
     </div>
-    <div class="dashboard-card p-4">
+    <div class="dashboard-card superadmin-summary-card p-4">
         <p class="text-sm font-bold text-slate-500">Perlu Revisi</p>
         <strong class="mt-2 block text-3xl font-black text-red-700"><?= e($rejected) ?></strong>
         <p class="text-xs font-bold text-slate-400">Task berstatus rejected</p>
     </div>
-    <div class="dashboard-card p-4">
+    <div class="dashboard-card superadmin-summary-card p-4">
         <p class="text-sm font-bold text-slate-500">Deadline Hari Ini</p>
         <strong class="mt-2 block text-3xl font-black text-orange-700"><?= e($dueToday) ?></strong>
         <p class="text-xs font-bold text-slate-400">Belum approved</p>
     </div>
-    <div class="dashboard-card p-4">
+    <div class="dashboard-card superadmin-summary-card p-4">
         <p class="text-sm font-bold text-slate-500">3 Hari ke Depan</p>
         <strong class="mt-2 block text-3xl font-black text-blue-700"><?= e($dueSoon) ?></strong>
         <p class="text-xs font-bold text-slate-400">Butuh monitoring</p>
     </div>
 </div>
 
-<div class="mt-6 grid gap-6 xl:grid-cols-3">
-    <section class="dashboard-card xl:col-span-2 p-5">
+<div class="superadmin-main-grid mt-6 grid gap-6 xl:grid-cols-3">
+    <section class="dashboard-card superadmin-chart-card xl:col-span-2 p-5">
         <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <h3 class="text-lg font-black">Grafik Aktivitas Proyek Kampus</h3>
@@ -761,9 +761,9 @@ if ($user['role'] === 'ADMIN') {
         </div>
     </section>
 
-    <section class="dashboard-card p-5">
+    <section class="dashboard-card superadmin-deadline-card p-5">
         <h3 class="text-lg font-black">Deadline & Tindak Lanjut</h3>
-        <div class="mt-4 space-y-3">
+        <div class="superadmin-scroll-list mt-5 space-y-3">
             <?php foreach ($deadlineRows as $d): ?>
                 <a href="actions/task-detail.php?id=<?= e($d['id']) ?>" class="block rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 <?= strtotime($d['deadline_at']) < time() ? 'bg-red-50 border-red-100' : '' ?>">
                     <strong class="block text-sm"><?= e($d['title']) ?></strong>
@@ -778,10 +778,10 @@ if ($user['role'] === 'ADMIN') {
     </section>
 </div>
 
-<div class="mt-6 grid gap-6 xl:grid-cols-2">
-    <section class="dashboard-card p-5">
+<div class="superadmin-lower-grid mt-6 grid gap-6 xl:grid-cols-2">
+    <section class="dashboard-card superadmin-list-card p-5">
         <h3 class="text-lg font-black">Project Terdekat</h3>
-        <div class="mt-4 space-y-3">
+        <div class="superadmin-scroll-list mt-5 space-y-3">
             <?php foreach ($projects as $p): ?>
                 <?php $projectProgress = ((int)$p['task_count']) > 0 ? round(((int)$p['approved_count'] / max(1, (int)$p['task_count'])) * 100) : 0; ?>
                 <a href="actions/project-detail.php?id=<?= e($p['id']) ?>" class="block rounded-2xl border border-slate-100 p-4 hover:bg-slate-50">
@@ -799,9 +799,9 @@ if ($user['role'] === 'ADMIN') {
         </div>
     </section>
 
-    <section class="dashboard-card p-5">
+    <section class="dashboard-card superadmin-list-card p-5">
         <h3 class="text-lg font-black">Aktivitas Terbaru</h3>
-        <div class="mt-4 space-y-3">
+        <div class="superadmin-scroll-list mt-5 space-y-3">
             <?php foreach ($activityRows as $a): ?>
                 <div class="rounded-2xl border border-slate-100 p-4">
                     <div class="flex items-start justify-between gap-3">

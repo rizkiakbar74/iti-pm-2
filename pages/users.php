@@ -132,109 +132,43 @@ $visible = array_values(array_filter($users, function($u) use ($user) {
 }));
 
 $roleOptionsForCreate = $creatableRoles;
+$search = trim($_GET['q'] ?? '');
+$roleFilter = $_GET['role'] ?? '';
+$unitFilter = $_GET['unit'] ?? '';
+$statusFilter = $_GET['status'] ?? '';
+$requestedPerPage = (int)($_GET['per_page'] ?? 10);
+$perPage = in_array($requestedPerPage, [5,10,20,50], true) ? $requestedPerPage : 10;
+$units = array_values(array_unique(array_filter(array_column($visible, 'unit'))));
+sort($units);
+$totalVisible = count($visible);
+$activeUsers = count(array_filter($visible, fn($u) => $u['status'] === 'active'));
+$inactiveUsers = count(array_filter($visible, fn($u) => $u['status'] === 'inactive'));
+$newUsers = count(array_filter($visible, fn($u) => strtotime($u['created_at']) >= strtotime('-30 days')));
+$filteredUsers = array_values(array_filter($visible, function($u) use ($search,$roleFilter,$unitFilter,$statusFilter) {
+    $haystack = strtolower($u['name'].' '.$u['email'].' '.$u['unit'].' '.$u['role']);
+    return (!$search || strpos($haystack, strtolower($search)) !== false)
+        && (!$roleFilter || $u['role'] === $roleFilter)
+        && (!$unitFilter || $u['unit'] === $unitFilter)
+        && (!$statusFilter || $u['status'] === $statusFilter);
+}));
+$filteredCount = count($filteredUsers);
+$totalPages = max(1, (int)ceil($filteredCount / $perPage));
+$currentPage = min(max(1, (int)($_GET['p'] ?? 1)), $totalPages);
+$offset = ($currentPage - 1) * $perPage;
+$pageUsers = array_slice($filteredUsers, $offset, $perPage);
+$usersUrl = function($changes = []) use ($search,$roleFilter,$unitFilter,$statusFilter,$perPage) {
+    return 'index.php?' . http_build_query(array_merge(['page'=>'users','q'=>$search,'role'=>$roleFilter,'unit'=>$unitFilter,'status'=>$statusFilter,'per_page'=>$perPage], $changes));
+};
 ?>
-
-<div class="mb-6">
-    <p class="text-sm font-black uppercase tracking-wide text-orange-600">Pengguna</p>
-    <h2 class="text-3xl font-black">Manajemen Pengguna</h2>
-    <p class="text-slate-500">Phase 1.4: create, update, reset password, dan guard role hierarchy dasar.</p>
+<div class="users-management-page">
+ <header class="users-management-header"><div><p>Dashboard / User / User Management</p><h2>User Management</h2><span>Kelola pengguna, role, dan akses sistem.</span></div><div><?php if($roleOptionsForCreate): ?><button class="open-user-create" type="button">+ Tambah User Baru</button><?php endif; ?></div></header>
+ <?php if($message): ?><div class="user-management-alert success"><?= e($message) ?></div><?php endif; ?><?php if($error): ?><div class="user-management-alert error"><?= e($error) ?></div><?php endif; ?>
+ <?php $userKpis=[['Total User',$totalVisible,'blue'],['Active User',$activeUsers,'green'],['New User',$newUsers,'amber'],['Inactive User',$inactiveUsers,'purple'],['Blocked User',0,'red']]; ?>
+ <section class="user-management-kpis"><?php foreach($userKpis as [$label,$value,$tone]): ?><article class="user-management-kpi <?= e($tone) ?>"><i><?= e(strtoupper(substr($label,0,1))) ?></i><div><small><?= e($label) ?></small><b><?= e($value) ?></b><span><?= $label==='Blocked User'?'Belum tersedia di sistem':'Data pengguna saat ini' ?></span></div></article><?php endforeach; ?></section>
+ <section class="user-management-filter"><form method="get"><input type="hidden" name="page" value="users"><label><span>⌕</span><input name="q" value="<?= e($search) ?>" placeholder="Cari nama, email, atau unit..."></label><select name="role"><option value="">Semua Role</option><?php foreach(['SUPERADMIN','ADMIN','MODERATOR','USER'] as $role): ?><option value="<?= e($role) ?>" <?= $roleFilter===$role?'selected':'' ?>><?= e($role) ?></option><?php endforeach; ?></select><select name="unit"><option value="">Semua Department</option><?php foreach($units as $unit): ?><option value="<?= e($unit) ?>" <?= $unitFilter===$unit?'selected':'' ?>><?= e($unit) ?></option><?php endforeach; ?></select><select name="status"><option value="">Semua Status</option><option value="active" <?= $statusFilter==='active'?'selected':'' ?>>Active</option><option value="inactive" <?= $statusFilter==='inactive'?'selected':'' ?>>Inactive</option></select><button>Filter</button><a href="index.php?page=users">Reset</a></form></section>
+ <section class="user-management-table"><div class="data-table-scroll"><table><thead><tr><th>User</th><th>Role</th><th>Department</th><th>Status</th><th>Project</th><th>Task Aktif</th><th>Dibuat Pada</th><th>Aksi</th></tr></thead><tbody><?php foreach($pageUsers as $u): $canEdit=can_manage_target_user($user,$u); ?><tr class="user-management-row"><td><span class="user-management-person"><i><?= e(strtoupper(substr($u['name'],0,1))) ?></i><span><b><?= e($u['name']) ?></b><small><?= e($u['email']) ?></small></span></span></td><td><span class="user-role-badge role-<?= e(strtolower($u['role'])) ?>"><?= e($u['role']) ?></span></td><td><?= e($u['unit']) ?></td><td><span class="user-status-badge <?= e($u['status']) ?>"><?= e(ucfirst($u['status'])) ?></span></td><td><b><?= e($u['owned_projects']) ?></b><small class="user-table-subcopy"><?= e($u['subordinate_count']) ?> bawahan</small></td><td><b><?= e($u['active_tasks']) ?></b></td><td><?= e(date('d M Y',strtotime($u['created_at']))) ?></td><td><?php if($canEdit): ?><button class="user-edit-button" type="button" data-user-edit="<?= e($u['id']) ?>">Edit</button><?php else: ?><span class="user-action-disabled">-</span><?php endif; ?></td></tr>
+ <?php if($canEdit): ?><tr id="edit-user-<?= e($u['id']) ?>" class="user-edit-row" hidden><td colspan="8"><div class="user-form-modal"><div class="user-form-shell"><header class="user-form-header"><div><p>Dashboard / User / Edit User</p><h3>Edit User</h3><span>Ubah informasi pengguna dan akses akun.</span></div><button class="close-user-edit" data-user-edit="<?= e($u['id']) ?>" type="button">Kembali ke User</button></header><div class="user-form-layout"><form method="post" class="user-form-main user-summary-source"><?= csrf_field() ?><input type="hidden" name="action" value="update_user"><input type="hidden" name="user_id" value="<?= e($u['id']) ?>"><section><h4>Informasi Pribadi</h4><div class="user-form-grid"><label>Nama Lengkap <b>*</b><input name="name" value="<?= e($u['name']) ?>" required></label><label>Email<input value="<?= e($u['email']) ?>" disabled></label></div></section><section><h4>Informasi Pekerjaan</h4><div class="user-form-grid"><?php $allowedRoles=$user['role']==='SUPERADMIN'?['SUPERADMIN','ADMIN','MODERATOR','USER']:get_creatable_roles($user['role']); ?><label>Role <b>*</b><select name="role" required><?php foreach($allowedRoles as $role): ?><option value="<?= e($role) ?>" <?= $u['role']===$role?'selected':'' ?>><?= e($role) ?></option><?php endforeach; ?></select></label><label>Unit / Department <b>*</b><input name="unit" value="<?= e($u['unit']) ?>" required></label></div></section><section><h4>Status & Akses</h4><div class="user-form-grid"><label>Status Akun <b>*</b><select name="status"><option value="active" <?= $u['status']==='active'?'selected':'' ?>>Active</option><option value="inactive" <?= $u['status']==='inactive'?'selected':'' ?>>Inactive</option></select></label><div class="user-form-info">Perubahan role dan status mengikuti hierarchy serta guard kepemilikan project.</div></div></section><button class="user-form-save">Simpan Perubahan</button></form><aside class="user-form-aside"><section><h4>Ringkasan</h4><dl><div><dt>Nama</dt><dd data-summary="name"><?= e($u['name']) ?></dd></div><div><dt>Email</dt><dd><?= e($u['email']) ?></dd></div><div><dt>Role</dt><dd data-summary="role"><?= e($u['role']) ?></dd></div><div><dt>Department</dt><dd data-summary="unit"><?= e($u['unit']) ?></dd></div><div><dt>Status</dt><dd data-summary="status"><?= e(ucfirst($u['status'])) ?></dd></div></dl></section><section><h4>Keamanan & Akses</h4><form method="post" class="user-password-form"><?= csrf_field() ?><input type="hidden" name="action" value="reset_password"><input type="hidden" name="user_id" value="<?= e($u['id']) ?>"><label>Password Baru<input name="new_password" value="password" required></label><button>Reset Password</button></form><p>Password minimal 6 karakter. User akan menerima notifikasi setelah password direset.</p></section><section><h4>Aktivitas Akun</h4><p>Dibuat <?= e(date('d M Y, H:i',strtotime($u['created_at']))) ?></p><p>Dibuat oleh <?= e($u['creator_name'] ?: '-') ?></p><p><?= e($u['owned_projects']) ?> project aktif dan <?= e($u['active_tasks']) ?> task aktif.</p></section></aside></div></div></div></td></tr><?php endif; ?><?php endforeach; ?></tbody></table></div>
+ <?php if(!$pageUsers): ?><p class="user-management-empty">Tidak ada user yang cocok dengan filter.</p><?php endif; ?><footer><p>Menampilkan <?= $filteredCount?e($offset+1):0 ?> - <?= e(min($offset+$perPage,$filteredCount)) ?> dari <?= e($filteredCount) ?> user</p><nav><?php for($n=max(1,$currentPage-2);$n<=min($totalPages,$currentPage+2);$n++): ?><a class="<?= $n===$currentPage?'active':'' ?>" href="<?= e($usersUrl(['p'=>$n])) ?>"><?= e($n) ?></a><?php endfor; ?></nav><form method="get"><input type="hidden" name="page" value="users"><input type="hidden" name="q" value="<?= e($search) ?>"><input type="hidden" name="role" value="<?= e($roleFilter) ?>"><input type="hidden" name="unit" value="<?= e($unitFilter) ?>"><input type="hidden" name="status" value="<?= e($statusFilter) ?>"><select name="per_page" onchange="this.form.submit()"><?php foreach([5,10,20,50] as $size): ?><option value="<?= e($size) ?>" <?= $perPage===$size?'selected':'' ?>><?= e($size) ?> / halaman</option><?php endforeach; ?></select></form></footer></section>
 </div>
-
-<?php if ($message): ?>
-    <div class="mb-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-bold text-green-700"><?= e($message) ?></div>
-<?php endif; ?>
-<?php if ($error): ?>
-    <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700"><?= e($error) ?></div>
-<?php endif; ?>
-
-<?php if (can_manage_users($user['role']) && $roleOptionsForCreate): ?>
-<section class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-    <h3 class="mb-4 text-lg font-black">Tambah Pengguna</h3>
-    <form method="post" class="grid gap-3 lg:grid-cols-6">
-        <?= csrf_field() ?>
-        <input type="hidden" name="action" value="create_user">
-        <input class="rounded-xl border border-slate-200 px-4 py-3" name="name" placeholder="Nama" required>
-        <input class="rounded-xl border border-slate-200 px-4 py-3" name="email" type="email" placeholder="Email" required>
-        <select class="rounded-xl border border-slate-200 px-4 py-3" name="role" required>
-            <?php foreach ($roleOptionsForCreate as $role): ?>
-                <option value="<?= e($role) ?>"><?= e($role) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <input class="rounded-xl border border-slate-200 px-4 py-3" name="unit" placeholder="Unit kerja" required>
-        <input class="rounded-xl border border-slate-200 px-4 py-3" name="password" placeholder="Password awal" value="password" required>
-        <button class="rounded-xl bg-orange-600 px-4 py-3 font-black text-white">Tambah User</button>
-    </form>
-</section>
-<?php endif; ?>
-
-<section class="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm iti-scrollbar">
-    <div class="grid grid-cols-8 gap-3 bg-slate-50 px-5 py-3 text-xs font-black uppercase text-slate-500">
-        <span class="col-span-2">Pengguna</span>
-        <span>Role</span>
-        <span>Unit</span>
-        <span>Status</span>
-        <span>Ownership</span>
-        <span>Task Aktif</span>
-        <span>Aksi</span>
-    </div>
-    <?php foreach ($visible as $u): ?>
-        <?php $canEdit = can_manage_target_user($user, $u); ?>
-        <div class="grid grid-cols-8 gap-3 border-t border-slate-100 px-5 py-4 text-sm">
-            <span class="col-span-2">
-                <b><?= e($u['name']) ?></b>
-                <small class="block text-slate-500"><?= e($u['email']) ?></small>
-                <small class="block text-slate-400">Dibuat oleh: <?= e($u['creator_name'] ?: '-') ?></small>
-            </span>
-            <span><?= e($u['role']) ?></span>
-            <span><?= e($u['unit']) ?></span>
-            <span><?= status_badge($u['status']) ?></span>
-            <span><?= e($u['owned_projects']) ?> project<br><small class="text-slate-400"><?= e($u['subordinate_count']) ?> bawahan</small></span>
-            <span><?= e($u['active_tasks']) ?></span>
-            <span>
-                <?php if ($canEdit): ?>
-                    <button type="button" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-black text-white" onclick="document.getElementById('edit-user-<?= e($u['id']) ?>').classList.toggle('hidden')">Edit</button>
-                <?php else: ?>
-                    <small class="text-slate-400">Tidak tersedia</small>
-                <?php endif; ?>
-            </span>
-        </div>
-        <?php if ($canEdit): ?>
-            <div id="edit-user-<?= e($u['id']) ?>" class="hidden border-t border-slate-100 bg-slate-50 px-5 py-4">
-                <div class="grid gap-4 xl:grid-cols-2">
-                    <form method="post" class="grid gap-3 rounded-2xl bg-white p-4 md:grid-cols-5">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="update_user">
-                        <input type="hidden" name="user_id" value="<?= e($u['id']) ?>">
-                        <input class="rounded-xl border border-slate-200 px-3 py-3" name="name" value="<?= e($u['name']) ?>" required>
-                        <select class="rounded-xl border border-slate-200 px-3 py-3" name="role" required>
-                            <?php
-                                $allowedRoles = $user['role'] === 'SUPERADMIN' ? ['SUPERADMIN','ADMIN','MODERATOR','USER'] : get_creatable_roles($user['role']);
-                                foreach ($allowedRoles as $role):
-                                    if ($role === 'SUPERADMIN' && $u['role'] !== 'SUPERADMIN' && $user['role'] !== 'SUPERADMIN') continue;
-                            ?>
-                                <option value="<?= e($role) ?>" <?= $u['role'] === $role ? 'selected' : '' ?>><?= e($role) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input class="rounded-xl border border-slate-200 px-3 py-3" name="unit" value="<?= e($u['unit']) ?>" required>
-                        <select class="rounded-xl border border-slate-200 px-3 py-3" name="status" required>
-                            <option value="active" <?= $u['status'] === 'active' ? 'selected' : '' ?>>active</option>
-                            <option value="inactive" <?= $u['status'] === 'inactive' ? 'selected' : '' ?>>inactive</option>
-                        </select>
-                        <button class="rounded-xl bg-orange-600 px-4 py-3 font-black text-white">Simpan</button>
-                    </form>
-
-                    <form method="post" class="grid gap-3 rounded-2xl bg-white p-4 md:grid-cols-[1fr_auto]">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="reset_password">
-                        <input type="hidden" name="user_id" value="<?= e($u['id']) ?>">
-                        <input class="rounded-xl border border-slate-200 px-3 py-3" name="new_password" value="password" required>
-                        <button class="rounded-xl bg-slate-900 px-4 py-3 font-black text-white">Reset Password</button>
-                    </form>
-                </div>
-                <p class="mt-3 text-xs text-slate-500">
-                    Guard: user tidak bisa dinonaktifkan/diturunkan jika masih owner project aktif, punya task aktif, punya bawahan aktif, atau menjadi SUPERADMIN terakhir.
-                </p>
-            </div>
-        <?php endif; ?>
-    <?php endforeach; ?>
-</section>
+<?php if($roleOptionsForCreate): ?><div class="user-create-modal fixed inset-0 z-50 <?= $error&&($_POST['action']??'')==='create_user'?'flex':'hidden' ?> items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"><div class="user-form-shell"><header class="user-form-header"><div><p>Dashboard / User / Create User</p><h3>Create User</h3><span>Tambah pengguna baru dan atur akses awal.</span></div><button class="close-user-create" type="button">Kembali ke User</button></header><div class="user-form-layout"><form method="post" class="user-form-main user-summary-source"><?= csrf_field() ?><input type="hidden" name="action" value="create_user"><section><h4>Informasi Pribadi</h4><div class="user-form-grid"><label>Nama Lengkap <b>*</b><input name="name" required placeholder="Nama lengkap pengguna"></label><label>Email <b>*</b><input name="email" type="email" required placeholder="nama@iti.ac.id"></label></div></section><section><h4>Informasi Pekerjaan</h4><div class="user-form-grid"><label>Role <b>*</b><select name="role"><?php foreach($roleOptionsForCreate as $role): ?><option value="<?= e($role) ?>"><?= e($role) ?></option><?php endforeach; ?></select></label><label>Unit / Department <b>*</b><input name="unit" required placeholder="Unit kerja"></label></div></section><section><h4>Keamanan & Akses</h4><div class="user-form-grid"><label>Password Awal <b>*</b><input name="password" value="password" required></label><div class="user-form-info">Akun baru dibuat dengan status Active. Password minimal 6 karakter.</div></div></section><button class="user-form-save">Simpan User</button></form><aside class="user-form-aside"><section><h4>Status Akun</h4><p class="user-form-active">Active</p><small>Pengguna dapat login dan mengakses sistem setelah dibuat.</small></section><section><h4>Ringkasan</h4><dl><div><dt>Nama</dt><dd data-summary="name">-</dd></div><div><dt>Email</dt><dd data-summary="email">-</dd></div><div><dt>Role</dt><dd data-summary="role"><?= e($roleOptionsForCreate[0] ?? '-') ?></dd></div><div><dt>Department</dt><dd data-summary="unit">-</dd></div><div><dt>Status</dt><dd>Active</dd></div></dl></section><section><h4>Batasan Akses</h4><p>Role yang tersedia mengikuti hierarchy akun Anda: <?= e(role_label($user['role'])) ?>.</p><p>Pengaturan permission rinci akan tersedia pada Screen 17.</p></section></aside></div></div></div><?php endif; ?>
+<script>(()=>{const modal=document.querySelector('.user-create-modal');document.querySelectorAll('.open-user-create').forEach(b=>b.addEventListener('click',()=>{modal?.classList.remove('hidden');modal?.classList.add('flex')}));document.querySelectorAll('.close-user-create').forEach(b=>b.addEventListener('click',()=>{modal?.classList.add('hidden');modal?.classList.remove('flex')}));document.querySelectorAll('[data-user-edit]').forEach(b=>b.addEventListener('click',()=>{const row=document.getElementById('edit-user-'+b.dataset.userEdit);if(row)row.hidden=!row.hidden}));document.querySelectorAll('.user-summary-source').forEach(form=>{const sync=()=>form.closest('.user-form-layout')?.querySelectorAll('[data-summary]').forEach(out=>{const input=form.elements[out.dataset.summary];if(input)out.textContent=input.value||'-'});form.addEventListener('input',sync);form.addEventListener('change',sync);sync()});if(new URLSearchParams(location.search).get('create')==='1')document.querySelector('.open-user-create')?.click()})();</script>
