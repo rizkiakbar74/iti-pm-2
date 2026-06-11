@@ -1,0 +1,6 @@
+<div class="ui3-page ui3-alert-page">
+ <header><p>UI Set 3 / Feedback System</p><h2>Sistem Alert</h2><span>Contoh state feedback yang digunakan di seluruh aplikasi.</span></header>
+ <section><h3>Toast dan Inline Alert</h3><div class="ui3-alerts"><?php foreach([['success','Berhasil!','Data berhasil disimpan.'],['error','Gagal!','Terjadi kesalahan sistem. Coba lagi.'],['warning','Perhatian!','Deadline task akan lewat dalam 2 hari.'],['info','Informasi','Anda memiliki task yang menunggu review.']] as [$tone,$title,$copy]): ?><article class="<?= e($tone) ?>"><i><?= e(strtoupper(substr($title,0,1))) ?></i><span><b><?= e($title) ?></b><small><?= e($copy) ?></small></span><button type="button">×</button></article><?php endforeach; ?></div></section>
+ <section><h3>Dialog dan Action State</h3><div class="ui3-dialog-grid"><article><i class="success">✓</i><h4>Simpan Perubahan?</h4><p>Perubahan yang Anda lakukan akan disimpan.</p><footer><button>Batal</button><button class="success">Simpan</button></footer></article><article><i class="error">×</i><h4>Hapus Task?</h4><p>Task akan dihapus secara permanen.</p><footer><button>Batal</button><button class="error">Hapus</button></footer></article></div></section>
+ <section><h3>Loading State</h3><div class="ui3-loading"><i></i><span><b>Menyimpan data...</b><small>Mohon tunggu sebentar.</small></span></div></section>
+</div>

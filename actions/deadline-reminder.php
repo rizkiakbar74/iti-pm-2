@@ -1,6 +1,13 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
 require_login();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    header('Allow: POST');
+    die('Method tidak diizinkan.');
+}
+
 verify_csrf();
 
 $user = current_user();
@@ -42,6 +49,14 @@ foreach ($tasks as $task) {
     foreach ($assignees as $assigneeId) {
         $title = 'Reminder deadline task';
         $message = $task['title'] . ' - ' . $task['project_title'] . ' - deadline ' . date('d M Y H:i', strtotime($task['deadline_at']));
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) FROM notifications
+            WHERE user_id = ? AND task_id = ? AND title = ? AND created_at >= CURDATE()
+        ");
+        $stmt->execute([$assigneeId, $task['id'], $title]);
+        if ((int)$stmt->fetchColumn() > 0) {
+            continue;
+        }
         notify_user($pdo, $assigneeId, $title, $message, $task['project_id'], $task['id']);
         $notificationsCreated++;
     }

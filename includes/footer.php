@@ -40,6 +40,20 @@
         if (form.checkValidity()) form.classList.add('is-submitting');
     }));
 
+    const showRouteSkeleton = () => {
+        if (document.querySelector('.app-route-skeleton')) return;
+        const skeleton = document.createElement('div');
+        skeleton.className = 'app-route-skeleton';
+        skeleton.setAttribute('aria-label', 'Memuat halaman');
+        skeleton.innerHTML = '<header><i></i><b></b></header><section><i></i><i></i><i></i><i></i></section><article><b></b><span></span><span></span><span></span><span></span></article>';
+        document.body.appendChild(skeleton);
+    };
+    document.querySelectorAll('a[href*="index.php?page="]').forEach(link => link.addEventListener('click', event => {
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || link.target === '_blank' || link.href === location.href) return;
+        showRouteSkeleton();
+    }));
+    window.addEventListener('pageshow', () => document.querySelector('.app-route-skeleton')?.remove());
+
     const modalOverlays = [...document.querySelectorAll('[class*="fixed"][class*="inset-0"]')].filter(element => !element.classList.contains('mobile-drawer-backdrop'));
     const syncModalScroll = () => {
         const hasOpenModal = modalOverlays.some(modal => modal.classList.contains('flex') && !modal.classList.contains('hidden'));
@@ -57,6 +71,21 @@
         syncModalScroll();
     });
     syncModalScroll();
+
+    const mobileDrawer = document.querySelector('.mobile-navigation-drawer');
+    const mobileBackdrop = document.querySelector('.mobile-drawer-backdrop');
+    const closeMobileDrawer = () => {
+        mobileDrawer?.classList.remove('is-open');
+        mobileBackdrop?.classList.remove('is-open');
+        if (!modalOverlays.some(modal => modal.classList.contains('flex') && !modal.classList.contains('hidden'))) body.style.overflow = '';
+    };
+    document.querySelectorAll('.mobile-menu-button').forEach(button => button.addEventListener('click', () => {
+        mobileDrawer?.classList.add('is-open');
+        mobileBackdrop?.classList.add('is-open');
+        body.style.overflow = 'hidden';
+    }));
+    document.querySelector('.mobile-drawer-close')?.addEventListener('click', closeMobileDrawer);
+    mobileBackdrop?.addEventListener('click', closeMobileDrawer);
 })();
 </script>
 </div>

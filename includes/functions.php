@@ -339,6 +339,14 @@ function log_activity($pdo, $userId, $action, $detail, $projectId = null, $taskI
     $stmt->execute([$userId, $action, $detail, $projectId, $taskId]);
 }
 
+function safe_csv_cell($value) {
+    $value = (string)$value;
+    if ($value !== '' && in_array($value[0], ['=', '+', '-', '@'], true)) {
+        return "'" . $value;
+    }
+    return $value;
+}
+
 function notify_user($pdo, $userId, $title, $message, $projectId = null, $taskId = null) {
     if (!$userId) return;
     $stmt = $pdo->prepare("

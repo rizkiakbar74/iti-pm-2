@@ -1,0 +1,165 @@
+:root{
+  --iti-navy:#071b38;
+  --iti-navy-soft:#eaf0f7;
+  --iti-orange:#f15a24;
+  --iti-orange-soft:#fff1e8;
+  --iti-bg:#f5f7fa;
+  --iti-card:#fff;
+  --iti-border:#dfe6ef;
+  --iti-text:#0f172a;
+  --iti-muted:#64748b;
+  --iti-success:#16a34a;
+  --iti-warning:#d97706;
+  --iti-danger:#dc2626;
+  --iti-info:#284c72;
+  --radius-card:16px;
+  --shadow-card:0 5px 18px rgb(15 23 42/.055);
+  --sidebar-width:280px;
+  --bottom-nav-height:78px;
+  --add-navy:var(--iti-navy);
+  --add-orange:var(--iti-orange);
+  --add-bg:var(--iti-bg);
+  --add-card:var(--iti-card);
+  --add-line:var(--iti-border);
+  --add-muted:var(--iti-muted);
+  --ui3-navy:var(--iti-navy);
+  --ui3-orange:var(--iti-orange);
+  --ui3-line:var(--iti-border);
+  --ui3-muted:var(--iti-muted);
+}
+body.app-ui{color:var(--iti-text);background:var(--iti-bg);font-size:15px;line-height:1.5}
+.app-ui main{padding:30px 32px 44px!important}
+.app-ui main>:not(.dashboard-shell){max-width:1640px}
+.dashboard-sidebar{width:var(--sidebar-width)!important;background:linear-gradient(180deg,#061a34,#082541)!important}
+.dashboard-sidebar nav a{min-height:46px;border-radius:10px!important;font-size:15px!important}
+.dashboard-sidebar nav a[class*="from-orange"]{background:linear-gradient(135deg,var(--iti-orange),#e84b14)!important}
+.dashboard-sidebar h1{font-size:17px!important}.dashboard-sidebar p{font-size:12px!important}
+.additional-page,.ui3-page,.profile-page-v3{gap:20px}
+.additional-page-header h2,.ui3-page>header h2,.profile-page-v3>header h2,
+.task-management-header h2,.users-management-header h2,.role-management-header h2,
+.notification-center-header h2,.activity-log-header h2{font-size:32px!important;line-height:1.2}
+.additional-page-header span,.additional-page-header p,.ui3-page>header span,.ui3-page>header p,
+.profile-page-v3>header span,.profile-page-v3>header p,.task-management-header>div:first-child span,
+.users-management-header span,.role-management-header span,.notification-center-header span,.activity-log-header span{font-size:15px!important}
+.additional-card,.ui3-page>section,.profile-card-v3,.profile-hero-v3,.profile-quick-v3,
+.task-management-kpi,.task-management-filter,.task-management-table,.user-management-kpi,
+.user-management-filter,.user-management-table,.role-kpi,.role-list-panel,.permission-panel,
+.role-info-column>section,.notification-filter-panel,.notification-inbox-panel,.notification-detail-panel,
+.activity-filter-bar,.activity-table-panel,.activity-detail-panel{border-color:var(--iti-border)!important;border-radius:var(--radius-card)!important;background:var(--iti-card)!important;box-shadow:var(--shadow-card)!important}
+.additional-card,.ui3-page>section,.profile-card-v3,.profile-hero-v3,.profile-quick-v3{padding:22px}
+.additional-card h3,.ui3-page h3,.profile-card-v3 h3,.notification-center-layout h3,
+.activity-table-panel h3,.activity-detail-panel h3,.role-panel-title h3,.permission-panel h3,.role-info-column h3{font-size:17px!important}
+.additional-page-header :is(a,button),.report-date-filter :is(input,button,a),.additional-filter :is(label,select,button,a),
+.calendar-toolbar>*,.calendar-filters a,.settings-main>section>header button,.settings-main>footer :is(button,a),
+.template-action,.small-modal-panel footer button{min-height:44px!important;border-radius:9px!important;padding:0 16px!important;font-size:14px!important}
+.additional-page-header button,.additional-page-header>div:last-child a:first-child,.additional-filter button,
+.settings-main>section>header button,.settings-main>footer button{color:#fff!important;background:var(--iti-orange)!important}
+.additional-page-header>div:last-child a:not(:first-child),.calendar-toolbar a.active,.calendar-filters a.active,
+.template-tabs a.active{border-color:var(--iti-orange)!important;color:var(--iti-orange)!important;background:var(--iti-orange-soft)!important}
+.additional-kpis{gap:14px}.additional-kpis article{min-height:124px;border-color:var(--iti-border);border-radius:var(--radius-card);padding:20px;box-shadow:var(--shadow-card)}
+.additional-kpis i{width:52px;height:52px}.additional-kpis small{font-size:13px!important}.additional-kpis b{font-size:28px}.additional-kpis em{font-size:12px!important}
+.report-grid,.calendar-layout,.settings-layout,.template-layout{gap:16px}
+.report-line span,.report-line b,.report-legend span,.report-insights p span,.report-insights p b,
+.additional-card>header span,.additional-card>header a,.report-workload article b,.report-workload article small,
+.report-workload article strong{font-size:13px!important}
+.report-line i{background:linear-gradient(#fb923c,var(--iti-orange))!important}.report-donut{background:conic-gradient(var(--iti-success) calc(var(--done)*1%),var(--iti-orange) 0 76%,#f59e0b 0 90%,var(--iti-danger) 0)!important}
+.additional-table table,.task-management-table table,.user-management-table table,.permission-table,.activity-table-panel table{font-size:14px!important}
+.additional-table th,.task-management-table th,.user-management-table th,.permission-table th,.activity-table-panel th{font-size:13px!important}
+.additional-table td,.task-management-table td,.user-management-table td,.permission-table td{padding:14px!important}
+.task-title-cell b,.task-project-cell b,.user-management-person b,.role-list a b,.activity-table-panel td b{font-size:14px!important}
+.task-title-cell small,.task-project-cell small,.user-management-person small,.role-list a small,.activity-table-panel td small{font-size:12px!important}
+.task-priority,.task-status,.activity-action,.activity-success,.permission-state,.role-active{font-size:12px!important;padding:6px 9px!important}
+.task-management-kpi p,.user-management-kpi p,.role-kpi p{font-size:13px!important}
+.task-management-kpi small,.user-management-kpi small,.role-kpi small{font-size:12px!important}
+.task-management-filter :is(select,button,a),.task-management-search,.user-management-filter :is(select,button,a,label),
+.activity-filter-bar :is(label,select,button,a),.role-search,.permission-toolbar label{min-height:44px!important;font-size:13px!important}
+.task-management-search input,.role-search input,.permission-toolbar input{font-size:13px!important}
+.template-tabs{gap:32px}.template-tabs a{font-size:14px!important}.template-categories span,.template-categories p,.template-category{font-size:13px!important}.template-category{color:#9a3412!important;background:var(--iti-orange-soft)!important}
+.calendar-toolbar b{font-size:18px!important}.calendar-day>b{font-size:13px!important}.calendar-event{border-color:var(--iti-orange);color:#9a3412;background:var(--iti-orange-soft);font-size:12px!important}
+.calendar-event small,.calendar-mini i,.calendar-upcoming b,.calendar-upcoming small,.calendar-upcoming time,.calendar-note,.calendar-legend p{font-size:12px!important}
+.calendar-mini i.has-event{background:var(--iti-orange)}.calendar-upcoming>a>i{background:var(--iti-orange)}
+.settings-nav b,.settings-grid label,.settings-toggles b,.settings-status p,.settings-danger p{font-size:13px!important}
+.settings-nav small,.settings-toggles small{font-size:12px!important}.settings-grid :is(input,select){min-height:44px;font-size:14px!important}
+.settings-nav a.active{color:#c2410c;background:var(--iti-orange-soft)}
+.additional-empty h3,.additional-error h3{font-size:20px!important}.additional-empty p,.additional-error p,.additional-error small{font-size:14px!important}
+.additional-empty a,.additional-error a{min-height:44px;padding:0 18px;color:#fff;background:var(--iti-orange);font-size:14px!important}
+.small-modal-panel{border-radius:var(--radius-card);padding:24px}.small-modal-panel header p,.small-modal-panel header span,.small-modal-panel label,.small-modal-panel :is(input,select,textarea){font-size:14px!important}.small-modal-panel :is(input,select){min-height:44px}
+.ui3-components button.primary,.ui3-empty-state :is(a,button){background:var(--iti-orange)!important}
+.ui3-alerts .info,.ui3-loading{border-color:#cbd5e1;color:var(--iti-info);background:var(--iti-navy-soft)}
+.tone-purple,.task-management-kpi.tone-purple>span{color:#c2410c!important;background:var(--iti-orange-soft)!important}
+.tone-blue,.badge.blue,.activity-action.blue,.activity-detail-icon,.notification-detail-type,
+.notification-list-item span em,.profile-main-v3 em{color:var(--iti-info)!important;background:var(--iti-navy-soft)!important}
+.notification-list-item.selected,.activity-table-panel tbody tr.selected{border-color:#fdba74!important;background:#fff8f3!important;box-shadow:inset 3px 0 var(--iti-orange)!important}
+.notification-list-item.unread:before,.notification-list-item time b{background:var(--iti-orange)}
+.profile-unit-v3{background:var(--iti-navy-soft)}.profile-project-v3>i{background:var(--iti-navy)}.profile-project-v3 u{background:var(--iti-orange)}
+.role-list a>i{font-size:11px!important}.role-list a small,.role-list a em,.role-panel-title span,.permission-panel header span,
+.role-search-empty,.permission-search-empty td,.role-readonly-note,.permission-toolbar>div,.permission-table,
+.role-info-column dl div,.role-donut small,.role-legend p{font-size:12px!important}
+.user-delete-person em{color:#9a3412;background:var(--iti-orange-soft)}
+.dashboard-shell{font-size:14px!important}
+.dashboard-shell>header h2,.projects-page>div:first-child h2,.app-ui main>div>section:first-child h1{font-size:32px!important}
+.app-ui main h1{font-size:30px}
+.dashboard-shell .dashboard-card{border-color:var(--iti-border);border-radius:var(--radius-card);box-shadow:var(--shadow-card)}
+.dashboard-shell .dashboard-section-title{font-size:17px!important}
+.dashboard-shell [class*="text-[9px]"],.dashboard-shell [class*="text-[10px]"]{font-size:12px!important}
+.dashboard-shell [class*="text-[11px]"],.dashboard-shell [class*="text-[12px]"]{font-size:13px!important}
+.dashboard-shell table{font-size:13px!important}
+.dashboard-shell table th,.dashboard-shell table td{padding-top:10px!important;padding-bottom:10px!important}
+/* Line charts: keep dense periods readable and preserve full detail through tooltips. */
+.dashboard-line-chart{margin-top:26px!important;height:225px!important;padding-bottom:8px}
+.dashboard-progress-point{appearance:none!important;display:block!important;width:12px!important;height:12px!important;min-width:12px!important;min-height:12px!important;padding:0!important;border:3px solid var(--iti-orange)!important;border-radius:999px!important;background:#fff!important;box-shadow:0 0 0 3px #fff;transform:translateX(-50%)!important}
+.dashboard-progress-point:hover,.dashboard-progress-point:focus,.dashboard-progress-point:active{background:var(--iti-orange)!important;box-shadow:0 0 0 5px rgb(241 90 36 / .16)!important;transform:translateX(-50%) scale(1.25)!important}
+.dashboard-progress-value{z-index:3;display:none;min-width:38px;border:1px solid #fed7aa;border-radius:999px;padding:3px 6px;color:#9a3412;background:#fff7ed;box-shadow:0 3px 10px rgb(154 52 18 / .08);font-size:10px!important;line-height:1.15;text-align:center;white-space:nowrap}
+.dashboard-progress-value.is-visible{display:block}
+.dashboard-line-month{font-size:10px!important}
+.dashboard-line-chart.is-dense .flex.items-end>div:nth-child(even) .dashboard-line-month{opacity:0}
+.admin-chart-grid>.admin-card:first-child{min-height:340px;grid-template-rows:48px 1fr 38px}
+.admin-chart-grid>.admin-card:first-child .admin-card-title{height:48px}
+.admin-chart-grid>.admin-card:first-child .admin-card-title h2 span{display:block;margin-top:3px}
+.admin-activity-chart{height:240px!important;padding-left:42px!important}
+.admin-activity-chart svg{height:200px!important}
+.admin-chart-axis{bottom:35px!important;font-size:10px!important}
+.admin-chart-line{stroke-width:3;vector-effect:non-scaling-stroke}
+.admin-chart-point{stroke-width:3;vector-effect:non-scaling-stroke}
+.admin-chart-value{fill:#9a3412!important;stroke:#fff;stroke-width:4px;stroke-linejoin:round;paint-order:stroke;font-size:11px!important}
+.admin-chart-labels{padding-top:8px!important;font-size:10px!important}
+.admin-activity-chart.is-dense .admin-chart-labels span:nth-child(even){visibility:hidden}
+button:disabled,.app-ui [disabled]{cursor:not-allowed!important;opacity:.5!important;filter:grayscale(.25)}
+@media(min-width:1440px){
+  .app-ui main{font-size:15px!important}
+  .dashboard-sidebar{width:var(--sidebar-width)!important}
+}
+@media(max-width:1200px){
+  .app-ui main{padding:24px!important}
+  .additional-page-header h2,.ui3-page>header h2,.profile-page-v3>header h2{font-size:28px!important}
+}
+@media(max-width:767px){
+  body.app-ui{font-size:15px}
+  .app-ui main{padding:20px 15px calc(var(--bottom-nav-height) + 32px)!important}
+  .global-mobile-header{height:72px;background:#fff}.global-mobile-bottom{min-height:var(--bottom-nav-height);background:var(--iti-navy)}
+  .global-mobile-bottom a{font-size:11px}.global-mobile-bottom a.active{color:var(--iti-orange)}
+  .mobile-navigation-drawer{background:linear-gradient(180deg,#061a34,#082541)!important}
+  .additional-page-header h2,.ui3-page>header h2,.profile-page-v3>header h2,
+  .task-management-header h2,.users-management-header h2,.role-management-header h2,.notification-center-header h2,.activity-log-header h2{font-size:27px!important}
+  .additional-page-header span,.additional-page-header p,.ui3-page>header span,.ui3-page>header p{font-size:14px!important}
+  .additional-card,.ui3-page>section,.profile-card-v3,.profile-hero-v3,.profile-quick-v3{padding:16px}
+  .additional-kpis article{min-width:190px}
+  .additional-filter label{min-width:100%}
+  .calendar-event{width:7px;height:7px;font-size:0!important}
+  .calendar-event small{display:none}
+  .report-workload article b,.report-workload article small,.report-workload article strong{font-size:12px!important}
+  .page-dashboard .global-mobile-header,.page-dashboard .global-mobile-bottom{display:none!important}
+}
+@media(min-width:768px) and (max-width:1023px){
+  .dashboard-sidebar{display:none!important}
+  .global-mobile-header{position:sticky;z-index:35;top:0;display:flex;height:72px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--iti-border);padding:0 18px;background:#fff}
+  .global-mobile-header button{width:42px;height:42px;color:var(--iti-navy);font-size:22px}
+  .global-mobile-header>a:first-of-type{display:flex;align-items:center;gap:10px}.global-mobile-header>a:first-of-type img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+  .global-mobile-header>a:first-of-type span,.global-mobile-header>a:first-of-type b,.global-mobile-header>a:first-of-type small{display:block}.global-mobile-header>a:first-of-type small{font-size:11px}
+  .global-mobile-bottom{position:fixed;z-index:40;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,1fr);min-height:var(--bottom-nav-height);padding:10px;background:var(--iti-navy)}
+  .global-mobile-bottom a{display:grid;gap:3px;place-items:center;color:#fff;font-size:12px}.global-mobile-bottom a svg{width:22px;height:22px}.global-mobile-bottom a.active{color:var(--iti-orange)}
+  .app-ui main{padding:24px 22px calc(var(--bottom-nav-height) + 32px)!important}
+  .settings-layout,.calendar-layout,.template-layout{grid-template-columns:1fr!important}
+  .settings-nav{display:flex;overflow:auto}.settings-nav a{min-width:180px}.settings-status{grid-template-columns:1fr 1fr}
+  .calendar-layout>aside{grid-template-columns:1fr 1fr}.calendar-layout>aside>*:last-child{grid-column:1/-1}
+}

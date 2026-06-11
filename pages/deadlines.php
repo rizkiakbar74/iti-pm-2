@@ -24,7 +24,7 @@ $stmt->execute($params);
 $rows = $stmt->fetchAll();
 ?>
 
-<div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+<div class="deadline-page-v3"><div class="deadline-header-v3 mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div>
         <p class="text-sm font-black uppercase tracking-wide text-orange-600">Deadline</p>
         <h2 class="text-3xl font-black">Pusat Deadline</h2>
@@ -33,6 +33,8 @@ $rows = $stmt->fetchAll();
     <button type="button" id="open-deadline-reminder" class="rounded-xl bg-orange-600 px-4 py-3 text-sm font-black text-white">Buat Reminder Deadline</button>
     <?php endif; ?>
 </div>
+<?php $overdueRows=array_values(array_filter($rows,fn($r)=>strtotime($r['deadline_at'])<time()&&$r['status']!=='approved'));$todayRows=array_values(array_filter($rows,fn($r)=>date('Y-m-d',strtotime($r['deadline_at']))===date('Y-m-d')));$weekRows=array_values(array_filter($rows,fn($r)=>strtotime($r['deadline_at'])>=time()&&strtotime($r['deadline_at'])<=strtotime('+7 days'))); ?>
+<section class="deadline-summary-v3"><span><b><?= e(count($overdueRows)) ?></b><small>Terlambat</small></span><span><b><?= e(count($todayRows)) ?></b><small>Hari Ini</small></span><span><b><?= e(count($weekRows)) ?></b><small>Minggu Ini</small></span><span><b><?= e(count($rows)) ?></b><small>Semua</small></span></section>
 
 <?php if (in_array($user['role'], ['SUPERADMIN','ADMIN','MODERATOR'], true)): ?>
 <div id="deadline-reminder-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4">
@@ -76,7 +78,7 @@ $rows = $stmt->fetchAll();
 </script>
 <?php endif; ?>
 
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+<div class="deadline-list-v3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="space-y-3">
         <?php foreach ($rows as $row): ?>
             <a href="actions/task-detail.php?id=<?= e($row['id']) ?>" class="flex items-center justify-between rounded-2xl border border-slate-100 p-4 hover:bg-slate-50">
@@ -91,4 +93,5 @@ $rows = $stmt->fetchAll();
             </a>
         <?php endforeach; ?>
     </div>
+</div>
 </div>

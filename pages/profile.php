@@ -1,33 +1,14 @@
-<?php $user = current_user(); ?>
-<div class="mb-6">
-    <p class="text-sm font-black uppercase tracking-wide text-orange-600">Profil</p>
-    <h2 class="text-3xl font-black">Profil Saya</h2>
+<?php
+$user=current_user();
+$stmt=$pdo->prepare("SELECT COUNT(*) total,SUM(status='approved') done FROM tasks t JOIN task_assignees ta ON ta.task_id=t.id WHERE ta.user_id=? AND t.deleted_at IS NULL");$stmt->execute([$user['id']]);$taskStats=$stmt->fetch();
+$stmt=$pdo->prepare("SELECT p.*,COUNT(DISTINCT t.id) task_count,SUM(t.status='approved') done_count FROM projects p JOIN project_members pm ON pm.project_id=p.id LEFT JOIN tasks t ON t.project_id=p.id AND t.deleted_at IS NULL WHERE pm.user_id=? AND p.deleted_at IS NULL GROUP BY p.id ORDER BY p.created_at DESC LIMIT 3");$stmt->execute([$user['id']]);$profileProjects=$stmt->fetchAll();
+$done=(int)($taskStats['done']??0);$total=max(1,(int)($taskStats['total']??0));$success=(int)round($done/$total*100);
+?>
+<div class="profile-page-v3">
+ <header><p>Profile</p><h2>Profil Saya</h2><span>Kelola informasi akun dan preferensi Anda.</span></header>
+ <section class="profile-hero-v3"><div class="profile-main-v3"><i><?= e(strtoupper(substr($user['name'],0,2))) ?><b></b></i><span><h3><?= e($user['name']) ?></h3><p><?= e(role_label($user['role'])) ?> <em>Team Member</em></p><small><?= e($user['email']) ?></small><small><?= e($user['unit']) ?>, Institut Teknologi Indonesia</small></span><a href="<?= e(app_url('index.php?page=settings')) ?>">Edit Profil</a></div><div class="profile-unit-v3"><b>Divisi<br><strong><?= e($user['unit']) ?></strong></b><span>Role<br><strong><?= e(role_label($user['role'])) ?></strong></span></div><div class="profile-stats-v3"><span><b><?= e($done) ?></b><small>Task Selesai</small></span><span><b><?= e($success) ?>%</b><small>Task Success</small></span><span><b><?= e(count($profileProjects)) ?></b><small>Project Aktif</small></span><span><b><?= e((int)$taskStats['total']) ?></b><small>Total Task</small></span></div></section>
+ <section class="profile-card-v3"><h3>Informasi Akun</h3><dl><div><dt>Nama Lengkap</dt><dd><?= e($user['name']) ?></dd></div><div><dt>Email</dt><dd><?= e($user['email']) ?></dd></div><div><dt>Bahasa</dt><dd>Bahasa Indonesia</dd></div><div><dt>Zona Waktu</dt><dd>(GMT+7) Jakarta</dd></div></dl></section>
+ <section class="profile-card-v3"><h3>Project Aktif (<?= e(count($profileProjects)) ?>)</h3><?php foreach($profileProjects as $p):$progress=(int)$p['task_count']?round((int)$p['done_count']/(int)$p['task_count']*100):0;?><a class="profile-project-v3" href="<?= e(app_url('actions/project-detail.php?id='.$p['id'])) ?>"><i><?= e(strtoupper(substr($p['title'],0,1))) ?></i><span><b><?= e($p['title']) ?></b><small><?= e(ucfirst($p['status'])) ?></small><em><u style="width:<?= e($progress) ?>%"></u></em></span><strong><?= e($progress) ?>%</strong></a><?php endforeach; ?><?php if(!$profileProjects):?><p class="ui3-empty-mini">Belum ada project aktif.</p><?php endif;?></section>
+ <section class="profile-quick-v3"><a href="<?= e(app_url('index.php?page=settings')) ?>">Keamanan<small>Ubah preferensi</small></a><a href="<?= e(app_url('index.php?page=notifications')) ?>">Notifikasi<small>Atur inbox</small></a><a href="<?= e(app_url('index.php?page=design-system')) ?>">Tema<small>Design system</small></a><a href="<?= e(app_url('index.php?page=alerts')) ?>">Bantuan<small>Alert system</small></a></section>
+ <a class="profile-logout-v3" href="<?= e(app_url('logout.php')) ?>">Keluar dari Akun</a>
 </div>
-
-<section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="flex items-center gap-5">
-        <div class="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-900 text-3xl font-black text-white">
-            <?= e(substr($user['name'], 0, 1)) ?>
-        </div>
-        <div>
-            <h3 class="text-2xl font-black"><?= e($user['name']) ?></h3>
-            <p class="text-slate-500"><?= e($user['email']) ?></p>
-            <p class="mt-2"><?= status_badge($user['role']) ?></p>
-        </div>
-    </div>
-
-    <dl class="mt-6 grid gap-4 md:grid-cols-3">
-        <div class="rounded-2xl bg-slate-50 p-4">
-            <dt class="text-sm font-bold text-slate-500">Unit</dt>
-            <dd class="font-black"><?= e($user['unit']) ?></dd>
-        </div>
-        <div class="rounded-2xl bg-slate-50 p-4">
-            <dt class="text-sm font-bold text-slate-500">Mode</dt>
-            <dd class="font-black">PHP Session</dd>
-        </div>
-        <div class="rounded-2xl bg-slate-50 p-4">
-            <dt class="text-sm font-bold text-slate-500">Database</dt>
-            <dd class="font-black">MySQL/phpMyAdmin</dd>
-        </div>
-    </dl>
-</section>

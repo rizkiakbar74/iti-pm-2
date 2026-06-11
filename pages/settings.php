@@ -1,35 +1,20 @@
 <?php
-$user = current_user();
-$allowedPeriods = [1, 3, 6, 12];
-$saved = false;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    verify_csrf();
-    $dashboardPeriod = (int)($_POST['dashboard_period'] ?? 6);
-    $_SESSION['dashboard_period'] = in_array($dashboardPeriod, $allowedPeriods, true) ? $dashboardPeriod : 6;
-    $saved = true;
-}
+$user=current_user();$allowedPeriods=[1,3,6,12];$saved=false;
+if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();$dashboardPeriod=(int)($_POST['dashboard_period']??6);$_SESSION['dashboard_period']=in_array($dashboardPeriod,$allowedPeriods,true)?$dashboardPeriod:6;$_SESSION['ui_density']=in_array($_POST['ui_density']??'comfortable',['comfortable','compact'],true)?$_POST['ui_density']:'comfortable';$_SESSION['deadline_reminder']=isset($_POST['deadline_reminder']);$_SESSION['weekly_summary']=isset($_POST['weekly_summary']);$_SESSION['email_notification']=isset($_POST['email_notification']);$_SESSION['date_format']=in_array($_POST['date_format']??'d M Y',['d M Y','d/m/Y','Y-m-d'],true)?$_POST['date_format']:'d M Y';$saved=true;}
+$period=(int)($_SESSION['dashboard_period']??6);$density=$_SESSION['ui_density']??'comfortable';$deadlineReminder=$_SESSION['deadline_reminder']??true;$weeklySummary=$_SESSION['weekly_summary']??false;$emailNotification=$_SESSION['email_notification']??true;$dateFormat=$_SESSION['date_format']??'d M Y';
+$lastBackup='Belum tersedia';try{$stmt=$pdo->query("SELECT MAX(created_at) FROM activity_logs WHERE action LIKE '%backup%'");$lastBackup=$stmt->fetchColumn()?:'Belum tersedia';}catch(Throwable $e){}
 ?>
-
-<div class="mb-6">
-    <p class="text-sm font-black uppercase tracking-wide text-orange-600">Settings</p>
-    <h2 class="text-3xl font-black">Pengaturan Tampilan</h2>
-    <p class="text-slate-500">Atur preferensi dashboard untuk sesi akun Anda.</p>
+<div class="additional-page settings-page">
+ <header class="additional-page-header"><div><p>System</p><h2>System Settings</h2><span>Kelola preferensi aplikasi dan konfigurasi tampilan akun.</span></div></header>
+ <?php if($saved):?><div class="additional-alert success">Pengaturan sesi berhasil disimpan.</div><?php endif;?>
+ <section class="settings-layout"><aside class="additional-card settings-nav"><?php foreach([['General','Informasi & preferensi sistem'],['Notifications','Deadline dan ringkasan'],['Security','Password dan session'],['Backup & Restore','Status backup sistem'],['Appearance','Tema dan tampilan'],['Integrations','Integrasi aplikasi']] as $i=>$item):?><a class="<?= $i===0?'active':'' ?>" href="#<?= e(strtolower(str_replace(' ','-',$item[0]))) ?>"><i><?= e(strtoupper(substr($item[0],0,1))) ?></i><span><b><?= e($item[0]) ?></b><small><?= e($item[1]) ?></small></span></a><?php endforeach;?></aside>
+ <form method="post" class="settings-main" data-settings-form><?= csrf_field() ?><section id="general" class="additional-card"><header><h3>General Settings</h3><button data-save-settings>Simpan Perubahan</button></header><div class="settings-grid"><label>Nama Aplikasi<input value="ITI Project Manager" readonly></label><label>Nama Institusi<input value="Institut Teknologi Indonesia" readonly></label><label>Email Admin<input value="<?= e($user['email']) ?>" readonly></label><label>Timezone<select disabled><option>Asia/Jakarta (WIB)</option></select></label><label>Bahasa Default<select disabled><option>Bahasa Indonesia</option></select></label><label>Format Tanggal<select name="date_format"><?php foreach(['d M Y'=>'18 Mei 2025','d/m/Y'=>'18/05/2025','Y-m-d'=>'2025-05-18'] as $key=>$label):?><option value="<?= e($key) ?>" <?= $dateFormat===$key?'selected':'' ?>><?= e($label) ?></option><?php endforeach;?></select></label><label>Periode Grafik Dashboard<select name="dashboard_period"><?php foreach($allowedPeriods as $p):?><option value="<?= e($p) ?>" <?= $period===$p?'selected':'' ?>><?= e($p) ?> bulan terakhir</option><?php endforeach;?></select></label></div></section>
+ <section id="notifications" class="additional-card"><h3>Notification Preferences</h3><div class="settings-toggles"><label><input type="checkbox" name="email_notification" <?= $emailNotification?'checked':'' ?>><span><b>Email Notification</b><small>Simpan preferensi notifikasi email.</small></span></label><label><input type="checkbox" name="deadline_reminder" <?= $deadlineReminder?'checked':'' ?>><span><b>Deadline Reminder</b><small>Tampilkan reminder deadline task.</small></span></label><label><input type="checkbox" name="weekly_summary" <?= $weeklySummary?'checked':'' ?>><span><b>Weekly Summary</b><small>Simpan preferensi ringkasan mingguan.</small></span></label></div></section>
+ <section id="security" class="additional-card"><h3>Security</h3><div class="settings-grid"><label>Role Aktif<input value="<?= e(role_label($user['role'])) ?>" readonly></label><label>Session Timeout<input value="30 menit" readonly></label><label>Autentikasi<input value="Email & Password" readonly></label><label>Password<input value="Dikelola melalui profil/admin" readonly></label></div></section>
+ <section id="backup-&-restore" class="additional-card"><h3>Backup & Restore</h3><div class="settings-grid"><label>Last Backup<input value="<?= e($lastBackup) ?>" readonly></label><label>Backup Otomatis<input value="Belum dikonfigurasi" readonly></label></div></section>
+ <section id="appearance" class="additional-card"><h3>Appearance</h3><div class="settings-toggles"><label><input type="radio" name="ui_density" value="comfortable" <?= $density==='comfortable'?'checked':'' ?>><span><b>Comfortable Layout</b><small>Spacing lebih lega dan mudah dibaca.</small></span></label><label><input type="radio" name="ui_density" value="compact" <?= $density==='compact'?'checked':'' ?>><span><b>Compact Layout</b><small>Menampilkan lebih banyak data.</small></span></label></div></section>
+ <section id="integrations" class="additional-card"><h3>Integrations</h3><div class="settings-grid"><label>Calendar Export<input value="iCalendar (.ics) tersedia" readonly></label><label>External API<input value="Belum dikonfigurasi" readonly></label></div></section>
+ <section class="additional-card settings-danger"><div><h3>Danger Zone</h3><p>Pengaturan kritis backend tidak dapat diubah dari halaman ini.</p></div><button type="button" disabled>Reset System Settings</button></section><footer><a href="<?= e(app_url('index.php?page=settings')) ?>">Reset</a><button>Simpan Pengaturan</button></footer></form>
+ <aside class="settings-status"><section class="additional-card"><h3>Status Sistem</h3><p><span>Server</span><b class="online">Online</b></p><p><span>Database</span><b class="online">Connected</b></p><p><span>Last Backup</span><b><?= e($lastBackup) ?></b></p><p><span>App Version</span><b>1.0.0</b></p><p><span>Maintenance</span><b>Off</b></p></section><section class="additional-card"><h3>Status Perubahan</h3><p><span>Form</span><b data-settings-state>Tersimpan</b></p><p>Field konfigurasi backend ditampilkan read-only. Preferensi UI disimpan pada sesi pengguna agar backend tetap aman.</p></section></aside></section>
 </div>
-
-<?php if ($saved): ?>
-    <div class="mb-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-bold text-green-700">Pengaturan dashboard berhasil disimpan.</div>
-<?php endif; ?>
-
-<form method="post" class="max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-    <?= csrf_field() ?>
-    <label class="block">
-        <span class="text-sm font-black text-slate-800">Periode default grafik dashboard</span>
-        <select class="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3" name="dashboard_period">
-            <?php foreach ($allowedPeriods as $period): ?>
-                <option value="<?= e($period) ?>" <?= (int)($_SESSION['dashboard_period'] ?? 6) === $period ? 'selected' : '' ?>><?= e($period) ?> bulan terakhir</option>
-            <?php endforeach; ?>
-        </select>
-    </label>
-    <button class="mt-5 rounded-xl bg-orange-600 px-5 py-3 font-black text-white hover:bg-orange-700">Simpan Pengaturan</button>
-</form>
+<script>(()=>{const form=document.querySelector('[data-settings-form]'),state=document.querySelector('[data-settings-state]'),buttons=document.querySelectorAll('[data-save-settings]');form?.addEventListener('change',()=>{if(state){state.textContent='Belum disimpan';state.classList.add('unsaved')}});form?.addEventListener('submit',()=>buttons.forEach(b=>{b.disabled=true;b.textContent='Menyimpan...'}));})();</script>

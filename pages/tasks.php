@@ -264,6 +264,6 @@ $tasks = $stmt->fetchAll();
         </div>
     <?php endforeach; ?>
     <?php if (!$tasks): ?>
-        <div class="border-t border-slate-100 p-6 text-sm text-slate-500">Belum ada task yang bisa ditampilkan.</div>
+        <div class="task-empty-state border-t border-slate-100 p-6 text-sm text-slate-500"><h3>Data Tidak Ditemukan</h3><p>Belum ada task yang sesuai dengan filter atau pencarian saat ini.</p><a href="<?= e(app_url('index.php?page=tasks')) ?>">Reset Filter</a><?php if(can_create_task($user['role'])):?><a href="<?= e(app_url('index.php?page=tasks&create=1')) ?>">Tambah Data Baru</a><?php endif;?></div>
     <?php endif; ?>
 </section>

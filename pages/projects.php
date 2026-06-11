@@ -241,6 +241,10 @@ $hasActiveFilters = count($activeFilters) > 0;
             </div>
         <?php endif; ?>
     </section>
+    <section class="mobile-project-list-v3">
+      <?php foreach($projects as $index=>$project): ?><a href="actions/project-detail.php?id=<?= e($project['id']) ?>"><div><i><?= e(strtoupper(substr($project['title'],0,1))) ?></i><span><small>PRJ-<?= e(str_pad((string)$project['id'],4,'0',STR_PAD_LEFT)) ?></small><b><?= e($project['title']) ?></b><em><?= e($project['description']?:'Project Institut Teknologi Indonesia') ?></em></span><strong><?= e(ucfirst($project['status'])) ?></strong></div><p>Progress <span><u style="width:<?= e($project['progress_percent']) ?>%"></u></span><b><?= e($project['progress_percent']) ?>%</b></p><footer><span><?= e(date('d M Y',strtotime($project['deadline_at']))) ?></span><span><?= e($project['member_count']) ?> Member</span><span><?= e($project['progress_percent']>=70?'Low':($project['progress_percent']>=40?'Medium':'High')) ?></span></footer></a><?php endforeach; ?>
+      <?php if(!$projects): ?><div class="ui3-empty-state"><i>⌕</i><h3>Project Belum Tersedia</h3><p>Belum ada project atau hasil yang sesuai filter.</p><a href="index.php?page=projects">Reset Filter</a><?php if($canCreateProject): ?><button class="open-project-modal" type="button">+ Buat Project</button><?php endif; ?></div><?php endif; ?>
+    </section>
 
     <section class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="data-table-scroll">

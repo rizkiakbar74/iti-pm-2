@@ -337,8 +337,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 0;
             border-radius: 9px;
             color: #fff;
-            background: linear-gradient(135deg, #1746a2, #082f88);
-            box-shadow: 0 8px 20px rgba(14, 61, 153, .22);
+            background: linear-gradient(135deg, #f97316, #e84b14);
+            box-shadow: 0 8px 20px rgba(234, 88, 12, .22);
             font: inherit;
             font-weight: 800;
             cursor: pointer;
@@ -346,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .login-button:hover {
-            box-shadow: 0 11px 24px rgba(14, 61, 153, .3);
+            box-shadow: 0 11px 24px rgba(234, 88, 12, .3);
             transform: translateY(-1px);
         }
 
@@ -517,25 +517,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (max-width: 560px) {
+            html,
+            body {
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
+            .login-layout,
+            .campus-panel,
+            .form-panel,
+            .campus-content {
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
             .campus-panel {
                 min-height: 310px;
             }
 
             .campus-content {
+                min-width: 0;
                 min-height: 310px;
                 padding: 30px 24px;
             }
 
+            .campus-content h1 {
+                max-width: 100%;
+                font-size: 32px;
+                overflow-wrap: anywhere;
+            }
+
+            .tagline {
+                max-width: 100%;
+                font-size: 16px;
+                overflow-wrap: anywhere;
+            }
+
             .description {
+                max-width: 100%;
                 font-size: 14px;
+                overflow-wrap: anywhere;
             }
 
             .login-card {
+                width: calc(100vw - 28px);
+                max-width: calc(100vw - 28px);
+                min-width: 0;
                 padding: 30px 22px;
                 border-radius: 20px;
             }
 
+            .login-card form,
+            .field,
+            .input-wrap,
+            .input-wrap input {
+                min-width: 0;
+                max-width: 100%;
+            }
+
+            .card-heading h2 {
+                font-size: 25px;
+                overflow-wrap: anywhere;
+            }
+
             .form-panel {
+                min-width: 0;
                 padding: 24px 14px;
             }
 

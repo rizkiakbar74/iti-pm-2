@@ -41,13 +41,13 @@ $adminProgressPolyline = implode(' ', $adminProgressPoints);
  <section class="admin-chart-grid">
   <article class="admin-card admin-activity admin-reveal" style="--delay:300ms">
    <div class="admin-card-title"><h2>Progress Project <span>(<?= e($period) ?> Bulan Terakhir)</span></h2><form method="get"><input type="hidden" name="page" value="dashboard"><?php if ($search !== ''): ?><input type="hidden" name="q" value="<?= e($search) ?>"><?php endif; ?><select name="period" onchange="this.form.submit()"><?php foreach ($allowedPeriods as $option): ?><option value="<?= e($option) ?>" <?= $period === $option ? 'selected' : '' ?>><?= e($option) ?> Bulan Terakhir</option><?php endforeach; ?></select></form></div>
-   <div class="admin-activity-chart">
+   <div class="admin-activity-chart <?= $period >= 12 ? 'is-dense' : '' ?>">
     <div class="admin-chart-axis"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
     <svg viewBox="0 0 600 190" preserveAspectRatio="none" role="img" aria-label="Progress Project Admin">
      <path class="admin-chart-gridline" d="M30 35H570M30 69H570M30 102H570M30 136H570M30 170H570"/>
      <polyline class="admin-chart-line" points="<?= e($adminProgressPolyline) ?>" fill="none" stroke="#f15a24" stroke-width="3" vector-effect="non-scaling-stroke"/>
-     <?php foreach ($chartRows as $index => $row): $value=$progressSeries[$index]; $x=30+($index*(540/$adminProgressCount)); $y=170-(($value/100)*135); ?>
-      <text class="admin-chart-value" x="<?= e(round($x,2)) ?>" y="<?= e(round(max(18,$y-10),2)) ?>" text-anchor="middle"><?= e($value) ?>%</text>
+     <?php foreach ($chartRows as $index => $row): $value=$progressSeries[$index]; $x=30+($index*(540/$adminProgressCount)); $y=170-(($value/100)*135); $showValue=$value>0 && ($period<12 || $index===0 || $value!==$progressSeries[$index-1]); ?>
+      <?php if ($showValue): ?><text class="admin-chart-value" x="<?= e(round($x,2)) ?>" y="<?= e(round(max(18,$y-12),2)) ?>" text-anchor="middle"><?= e($value) ?>%</text><?php endif; ?>
       <circle class="admin-chart-point" tabindex="0" data-label="<?= e($row['label']) ?>" data-value="<?= e($value) ?>%" data-name="Rata-rata Progress" cx="<?= e(round($x,2)) ?>" cy="<?= e(round($y,2)) ?>" r="4" fill="white" stroke="#f15a24" stroke-width="2"/>
      <?php endforeach; ?>
     </svg>

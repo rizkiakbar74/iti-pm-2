@@ -2,128 +2,128 @@
 $user = current_user();
 $filter = $_GET['filter'] ?? 'all';
 $type = $_GET['type'] ?? 'all';
+$selectedId = (int)($_GET['id'] ?? 0);
 $allowedFilters = ['all','unread','read'];
-if (!in_array($filter, $allowedFilters, true)) { $filter = 'all'; }
+if (!in_array($filter, $allowedFilters, true)) $filter = 'all';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $action = $_POST['action'] ?? '';
+    $notificationId = (int)($_POST['notification_id'] ?? 0);
     if ($action === 'mark_all_read') {
         $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
         $stmt->execute([$user['id']]);
-    }
-    if ($action === 'clear_read') {
+    } elseif ($action === 'clear_read') {
         $stmt = $pdo->prepare("DELETE FROM notifications WHERE user_id = ? AND is_read = 1");
         $stmt->execute([$user['id']]);
-    }
-    if ($action === 'delete_one') {
-        $notificationId = (int)($_POST['notification_id'] ?? 0);
+    } elseif ($action === 'mark_one_read') {
+        $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
+        $stmt->execute([$notificationId, $user['id']]);
+    } elseif ($action === 'delete_one') {
         $stmt = $pdo->prepare("DELETE FROM notifications WHERE id = ? AND user_id = ?");
         $stmt->execute([$notificationId, $user['id']]);
+        if ($selectedId === $notificationId) $selectedId = 0;
     }
+    redirect(app_url('index.php?' . http_build_query([
+        'page' => 'notifications',
+        'filter' => $filter,
+        'type' => $type,
+        'id' => $selectedId,
+    ])));
 }
 
-$where = "user_id = ?";
-$params = [$user['id']];
-if ($filter === 'unread') {
-    $where .= " AND is_read = 0";
-}
-if ($filter === 'read') {
-    $where .= " AND is_read = 1";
-}
-
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+$stmt = $pdo->prepare("
+    SELECT n.*, p.title project_title, t.title task_title
+    FROM notifications n
+    LEFT JOIN projects p ON p.id = n.project_id
+    LEFT JOIN tasks t ON t.id = n.task_id
+    WHERE n.user_id = ?
+    ORDER BY n.created_at DESC
+");
 $stmt->execute([$user['id']]);
-$unreadCount = (int)$stmt->fetchColumn();
+$allNotifications = $stmt->fetchAll();
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ?");
-$stmt->execute([$user['id']]);
-$totalCount = (int)$stmt->fetchColumn();
-
-$stmt = $pdo->prepare("SELECT * FROM notifications WHERE {$where} ORDER BY created_at DESC LIMIT 200");
-$stmt->execute($params);
-$allRows = $stmt->fetchAll();
-
+$totalCount = count($allNotifications);
+$unreadCount = count(array_filter($allNotifications, fn($n) => !(int)$n['is_read']));
+$readCount = $totalCount - $unreadCount;
+$typeLabels = ['all'=>'Semua Jenis','submit'=>'Submit','comment'=>'Komentar','project'=>'Project','task'=>'Task','deadline'=>'Deadline','reject'=>'Reject','approved'=>'Verified','general'=>'Umum'];
 $typeCounts = [];
-foreach ($allRows as $row) {
-    $rowType = get_notification_type($row['title'], $row['message']);
-    $typeCounts[$rowType] = ($typeCounts[$rowType] ?? 0) + 1;
+foreach ($allNotifications as $n) {
+    $notificationType = get_notification_type($n['title'], $n['message']);
+    $typeCounts[$notificationType] = ($typeCounts[$notificationType] ?? 0) + 1;
 }
-
-$rows = array_values(array_filter($allRows, function($row) use ($type) {
-    if ($type === 'all') return true;
-    return get_notification_type($row['title'], $row['message']) === $type;
+$rows = array_values(array_filter($allNotifications, function($n) use ($filter,$type) {
+    $statusMatches = $filter === 'all' || ($filter === 'unread' && !(int)$n['is_read']) || ($filter === 'read' && (int)$n['is_read']);
+    return $statusMatches && ($type === 'all' || get_notification_type($n['title'], $n['message']) === $type);
 }));
 
-$typeLabels = [
-    'all' => 'Semua Jenis',
-    'submit' => 'Submit',
-    'comment' => 'Komentar',
-    'project' => 'Project',
-    'task' => 'Task',
-    'deadline' => 'Deadline',
-    'reject' => 'Reject',
-    'approved' => 'Verified',
-    'general' => 'Umum',
-];
+$perPage = 10;
+$totalPages = max(1, (int)ceil(count($rows) / $perPage));
+$currentPage = min(max(1, (int)($_GET['p'] ?? 1)), $totalPages);
+$pageRows = array_slice($rows, ($currentPage - 1) * $perPage, $perPage);
+if (!$selectedId && $pageRows) $selectedId = (int)$pageRows[0]['id'];
+$selected = null;
+foreach ($allNotifications as $n) if ((int)$n['id'] === $selectedId) $selected = $n;
+
+$notificationUrl = function(array $changes = []) use ($filter,$type,$selectedId) {
+    return app_url('index.php?' . http_build_query(array_merge(['page'=>'notifications','filter'=>$filter,'type'=>$type,'id'=>$selectedId], $changes)));
+};
+$tones = ['approved'=>'blue','deadline'=>'orange','project'=>'purple','task'=>'green','submit'=>'green','comment'=>'purple','reject'=>'red','general'=>'slate'];
 ?>
+<div class="notification-center-page">
+  <header class="notification-center-header">
+    <div><p>Dashboard / Notification / Notification Center</p><h2>Notification Center</h2><span>Pusat semua notifikasi sistem. Pantau dan kelola notifikasi Anda.</span></div>
+    <form method="post"><?= csrf_field() ?><button name="action" value="mark_all_read">✓ Tandai Semua Dibaca</button></form>
+  </header>
 
-<div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-    <div>
-        <p class="text-sm font-black uppercase tracking-wide text-orange-600">Notifikasi</p>
-        <h2 class="text-3xl font-black">Pusat Notifikasi</h2>
-        <p class="text-slate-500"><?= e($unreadCount) ?> belum dibaca dari <?= e($totalCount) ?> notifikasi.</p>
-    </div>
-    <form method="post" class="flex flex-wrap gap-2">
-        <?= csrf_field() ?>
-        <button name="action" value="mark_all_read" class="rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white">Tandai Dibaca</button>
-        <button name="action" value="clear_read" class="rounded-xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700">Bersihkan Terbaca</button>
-    </form>
-</div>
-
-<div class="mb-4 grid gap-3 lg:grid-cols-[1fr_auto]">
-    <div class="flex flex-wrap gap-2">
-        <?php foreach (['all'=>'Semua','unread'=>'Belum Dibaca','read'=>'Sudah Dibaca'] as $key => $label): ?>
-            <a class="rounded-full px-4 py-2 text-sm font-black <?= $filter === $key ? 'bg-orange-600 text-white' : 'bg-white text-slate-700 border border-slate-200' ?>" href="index.php?page=notifications&filter=<?= e($key) ?>&type=<?= e($type) ?>"><?= e($label) ?></a>
+  <section class="notification-center-layout">
+    <aside class="notification-filter-panel">
+      <h3>Filter Notifikasi</h3>
+      <nav>
+        <?php foreach ([['all','Semua Notifikasi',$totalCount],['unread','Belum Dibaca',$unreadCount],['read','Sudah Dibaca',$readCount]] as [$key,$label,$count]): ?>
+          <a class="<?= $filter===$key?'active':'' ?>" href="<?= e($notificationUrl(['filter'=>$key,'p'=>1,'id'=>0])) ?>"><i><?= $key==='all'?'✓':($key==='unread'?'○':'□') ?></i><span><?= e($label) ?></span><b><?= e($count) ?></b></a>
         <?php endforeach; ?>
-    </div>
-    <form method="get" class="flex gap-2">
-        <input type="hidden" name="page" value="notifications">
-        <input type="hidden" name="filter" value="<?= e($filter) ?>">
-        <select name="type" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold" onchange="this.form.submit()">
-            <?php foreach ($typeLabels as $key => $label): ?>
-                <option value="<?= e($key) ?>" <?= $type === $key ? 'selected' : '' ?>><?= e($label) ?><?= $key !== 'all' && isset($typeCounts[$key]) ? ' (' . e($typeCounts[$key]) . ')' : '' ?></option>
-            <?php endforeach; ?>
-        </select>
-    </form>
-</div>
-
-<section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="space-y-3">
-        <?php foreach ($rows as $n): ?>
-            <?php $nType = get_notification_type($n['title'], $n['message']); ?>
-            <div class="grid gap-2 rounded-2xl border p-4 <?= $n['is_read'] ? 'border-slate-100' : 'border-orange-200 bg-orange-50/40' ?>">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <a class="block flex-1" href="actions/notification-open.php?id=<?= e($n['id']) ?>">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <strong><?= e($n['title']) ?></strong>
-                            <?= notification_type_badge($nType) ?>
-                            <span class="rounded-full px-2 py-1 text-xs font-black <?= $n['is_read'] ? 'bg-slate-100 text-slate-500' : 'bg-orange-100 text-orange-700' ?>"><?= $n['is_read'] ? 'Terbaca' : 'Baru' ?></span>
-                        </div>
-                        <p class="mt-2 text-sm text-slate-500"><?= e($n['message']) ?></p>
-                        <small class="text-slate-400"><?= e(date('d M Y H:i', strtotime($n['created_at']))) ?></small>
-                    </a>
-                    <form method="post" onsubmit="return confirm('Hapus notifikasi ini?')">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="delete_one">
-                        <input type="hidden" name="notification_id" value="<?= e($n['id']) ?>">
-                        <button class="rounded-lg bg-red-50 px-3 py-2 text-xs font-black text-red-700">Hapus</button>
-                    </form>
-                </div>
-            </div>
+        <?php foreach (['project','task','deadline','comment','approved','reject','general'] as $key): ?>
+          <a class="<?= $type===$key?'active':'' ?>" href="<?= e($notificationUrl(['type'=>$key,'p'=>1,'id'=>0])) ?>"><i>•</i><span><?= e($typeLabels[$key]) ?></span><b><?= e($typeCounts[$key]??0) ?></b></a>
         <?php endforeach; ?>
-        <?php if (!$rows): ?>
-            <p class="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">Belum ada notifikasi untuk filter ini.</p>
-        <?php endif; ?>
-    </div>
-</section>
+      </nav>
+      <div class="notification-advanced-filter">
+        <h3>Filter Lanjutan</h3>
+        <form method="get"><input type="hidden" name="page" value="notifications"><input type="hidden" name="filter" value="<?= e($filter) ?>"><select name="type" onchange="this.form.submit()"><?php foreach($typeLabels as $key=>$label): ?><option value="<?= e($key) ?>" <?= $type===$key?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form>
+        <a href="<?= e(app_url('index.php?page=notifications')) ?>">↻ Reset Filter</a>
+        <form method="post" onsubmit="return confirm('Hapus semua notifikasi yang sudah dibaca?')"><?= csrf_field() ?><button name="action" value="clear_read">Bersihkan Terbaca</button></form>
+      </div>
+    </aside>
+
+    <section class="notification-inbox-panel">
+      <header><h3><?= e(count($rows)) ?> Notifikasi</h3><span>Terbaru di Atas</span></header>
+      <div class="notification-list">
+        <?php foreach ($pageRows as $n): $nType=get_notification_type($n['title'],$n['message']); $tone=$tones[$nType]??'slate'; ?>
+          <a class="notification-list-item <?= !(int)$n['is_read']?'unread':'' ?> <?= $selectedId===(int)$n['id']?'selected':'' ?>" href="<?= e($notificationUrl(['id'=>$n['id']])) ?>">
+            <i class="tone-<?= e($tone) ?>"><?= e(strtoupper(substr($nType,0,1))) ?></i>
+            <span><b><?= e($n['title']) ?></b><small><?= e($n['message']) ?></small><em><?= e($typeLabels[$nType]??'Umum') ?><?= $n['project_title']?' • '.e($n['project_title']):'' ?></em></span>
+            <time><?= e(date('d M, H:i',strtotime($n['created_at']))) ?><?= !(int)$n['is_read']?'<b></b>':'' ?></time>
+          </a>
+        <?php endforeach; ?>
+        <?php if(!$pageRows): ?><div class="notification-empty"><h3>Data Tidak Ditemukan</h3><p>Belum ada notifikasi untuk filter ini.</p><a href="<?= e(app_url('index.php?page=notifications')) ?>">Reset Filter</a></div><?php endif; ?>
+      </div>
+      <footer><span>Halaman <?= e($currentPage) ?> dari <?= e($totalPages) ?></span><nav><?php for($p=1;$p<=$totalPages;$p++): ?><a class="<?= $p===$currentPage?'active':'' ?>" href="<?= e($notificationUrl(['p'=>$p,'id'=>0])) ?>"><?= e($p) ?></a><?php endfor; ?></nav><b><?= e($perPage) ?> / halaman</b></footer>
+    </section>
+
+    <aside class="notification-detail-panel">
+      <h3>Detail Notifikasi</h3>
+      <?php if($selected): $selectedType=get_notification_type($selected['title'],$selected['message']); $targetUrl=($selected['task_id']||$selected['project_id'])?'actions/notification-open.php?id='.(int)$selected['id']:''; ?>
+        <div class="notification-detail-icon tone-<?= e($tones[$selectedType]??'slate') ?>"><?= e(strtoupper(substr($selectedType,0,1))) ?></div>
+        <span class="notification-detail-type"><?= e($typeLabels[$selectedType]??'Umum') ?></span>
+        <h4><?= e($selected['title']) ?></h4>
+        <dl><div><dt>Waktu</dt><dd><?= e(date('d M Y, H:i',strtotime($selected['created_at']))) ?> WIB</dd></div><div><dt>Status</dt><dd><?= (int)$selected['is_read']?'Sudah Dibaca':'Belum Dibaca' ?></dd></div><?php if($selected['project_title']): ?><div><dt>Project</dt><dd><?= e($selected['project_title']) ?></dd></div><?php endif; ?><?php if($selected['task_title']): ?><div><dt>Task</dt><dd><?= e($selected['task_title']) ?></dd></div><?php endif; ?></dl>
+        <div class="notification-message"><b>Pesan</b><p><?= nl2br(e($selected['message'])) ?></p></div>
+        <div class="notification-detail-actions">
+          <?php if(!(int)$selected['is_read']): ?><form method="post"><?= csrf_field() ?><input type="hidden" name="notification_id" value="<?= e($selected['id']) ?>"><button class="primary" name="action" value="mark_one_read">✓ Tandai sebagai Dibaca</button></form><?php endif; ?>
+          <?php if($targetUrl): ?><a href="<?= e($targetUrl) ?>">Buka <?= $selected['task_id']?'Task':'Project' ?></a><?php endif; ?>
+          <form method="post" onsubmit="return confirm('Hapus notifikasi ini?')"><?= csrf_field() ?><input type="hidden" name="notification_id" value="<?= e($selected['id']) ?>"><button name="action" value="delete_one">Hapus Notifikasi</button></form>
+        </div>
+      <?php else: ?><p class="notification-empty">Pilih notifikasi untuk melihat detail.</p><?php endif; ?>
+    </aside>
+  </section>
+</div>

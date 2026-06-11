@@ -1,117 +1,55 @@
 <?php
 $user = current_user();
+$search = trim($_GET['q'] ?? '');
 $actionFilter = trim($_GET['action_filter'] ?? '');
 $actorFilter = trim($_GET['actor_filter'] ?? '');
 $targetFilter = $_GET['target'] ?? 'all';
+$selectedId = (int)($_GET['id'] ?? 0);
 
 $stmt = $pdo->query("
-    SELECT a.*, u.name, u.role
+    SELECT a.*, u.name, u.role, p.title project_title, t.title task_title
     FROM activity_logs a
     JOIN users u ON u.id = a.user_id
+    LEFT JOIN projects p ON p.id = a.project_id
+    LEFT JOIN tasks t ON t.id = a.task_id
     ORDER BY a.created_at DESC
-    LIMIT 500
+    LIMIT 1000
 ");
 $all = $stmt->fetchAll();
-
-if ($user['role'] === 'SUPERADMIN') {
-    $visible = $all;
-} else {
-    $visible = array_values(array_filter($all, function($row) use ($user) {
-        if ((int)$row['user_id'] === (int)$user['id']) return true;
-        return role_rank($row['role']) < role_rank($user['role']);
-    }));
-}
-
-$rows = array_values(array_filter($visible, function($row) use ($actionFilter, $actorFilter, $targetFilter) {
-    if ($actionFilter && stripos($row['action'], $actionFilter) === false && stripos($row['detail'], $actionFilter) === false) return false;
-    if ($actorFilter && stripos($row['name'], $actorFilter) === false && stripos($row['role'], $actorFilter) === false) return false;
+$visible = $user['role'] === 'SUPERADMIN' ? $all : array_values(array_filter($all, function($row) use ($user) {
+    return (int)$row['user_id'] === (int)$user['id'] || role_rank($row['role']) < role_rank($user['role']);
+}));
+$moduleOf = fn($row) => !empty($row['task_id']) ? 'Task' : (!empty($row['project_id']) ? 'Project' : (stripos($row['action'],'user')!==false||stripos($row['action'],'password')!==false ? 'User' : (stripos($row['action'],'login')!==false ? 'Auth' : 'System')));
+$rows = array_values(array_filter($visible, function($row) use ($search,$actionFilter,$actorFilter,$targetFilter,$moduleOf) {
+    $haystack = strtolower($row['action'].' '.$row['detail'].' '.$row['name'].' '.$row['role'].' '.$moduleOf($row));
+    if ($search && !str_contains($haystack, strtolower($search))) return false;
+    if ($actionFilter && $row['action'] !== $actionFilter) return false;
+    if ($actorFilter && (string)$row['user_id'] !== $actorFilter) return false;
     if ($targetFilter === 'project' && empty($row['project_id'])) return false;
     if ($targetFilter === 'task' && empty($row['task_id'])) return false;
     if ($targetFilter === 'general' && (!empty($row['project_id']) || !empty($row['task_id']))) return false;
     return true;
 }));
-$rows = array_slice($rows, 0, 150);
-
-$actionSummary = [];
-foreach ($visible as $row) {
-    $actionSummary[$row['action']] = ($actionSummary[$row['action']] ?? 0) + 1;
-}
-arsort($actionSummary);
-$topActions = array_slice($actionSummary, 0, 5, true);
+$actionOptions = array_values(array_unique(array_column($visible,'action'))); sort($actionOptions);
+$actorOptions = []; foreach($visible as $row) $actorOptions[$row['user_id']] = [$row['name'],$row['role']];
+$activityFailed = count(array_filter($rows, fn($row) => str_contains(strtolower($row['action'].' '.$row['detail']), 'gagal')));
+$activitySuccess = count($rows) - $activityFailed;
+$activityChanges = count(array_filter($rows, fn($row) => preg_match('/ubah|edit|update|buat|tambah|hapus/i', $row['action'].' '.$row['detail'])));
+$perPage = 10; $totalPages=max(1,(int)ceil(count($rows)/$perPage)); $currentPage=min(max(1,(int)($_GET['p']??1)),$totalPages);
+$pageRows=array_slice($rows,($currentPage-1)*$perPage,$perPage);
+if(!$selectedId&&$pageRows)$selectedId=(int)$pageRows[0]['id'];
+$selected=null; foreach($visible as $row)if((int)$row['id']===$selectedId)$selected=$row;
+$activityUrl=function(array $changes=[])use($search,$actionFilter,$actorFilter,$targetFilter,$selectedId){return app_url('index.php?'.http_build_query(array_merge(['page'=>'activity','q'=>$search,'action_filter'=>$actionFilter,'actor_filter'=>$actorFilter,'target'=>$targetFilter,'id'=>$selectedId],$changes)));};
+$actionTone=function($action){$a=strtolower($action);if(str_contains($a,'hapus')||str_contains($a,'ditolak'))return'red';if(str_contains($a,'buat')||str_contains($a,'tambah')||str_contains($a,'login'))return'green';if(str_contains($a,'edit')||str_contains($a,'ubah')||str_contains($a,'verified'))return'blue';return'orange';};
 ?>
-
-<div class="mb-6">
-    <p class="text-sm font-black uppercase tracking-wide text-orange-600">Activity Log</p>
-    <h2 class="text-3xl font-black">Riwayat Aktivitas</h2>
-    <p class="text-slate-500">Log ditampilkan sesuai hierarki role aktif dan bisa diklik jika terkait project/task.</p>
+<div class="activity-log-page">
+ <section class="activity-mobile-summary-v3"><div><b><?= e(count($rows)) ?></b><span>Semua</span></div><div><b><?= e($activitySuccess) ?></b><span>Berhasil</span></div><div><b><?= e($activityChanges) ?></b><span>Perubahan</span></div><div><b><?= e($activityFailed) ?></b><span>Gagal</span></div></section>
+ <header class="activity-log-header"><div><p>Dashboard / Activity Log / Activity Log</p><h2>Activity Log</h2><span>Riwayat aktivitas pengguna dalam sistem sesuai hierarchy role.</span></div><div><a href="<?= e(app_url('actions/activity-export.php')) ?>">↓ Export Log</a><a href="<?= e($activityUrl()) ?>">↻ Refresh</a></div></header>
+ <form method="get" class="activity-filter-bar"><input type="hidden" name="page" value="activity"><label><span>⌕</span><input name="q" value="<?= e($search) ?>" placeholder="Cari aktivitas..."></label><select name="target"><option value="all">Semua Modul</option><option value="project" <?= $targetFilter==='project'?'selected':'' ?>>Project</option><option value="task" <?= $targetFilter==='task'?'selected':'' ?>>Task</option><option value="general" <?= $targetFilter==='general'?'selected':'' ?>>Umum</option></select><select name="actor_filter"><option value="">Semua User</option><?php foreach($actorOptions as $id=>[$name,$role]): ?><option value="<?= e($id) ?>" <?= $actorFilter===(string)$id?'selected':'' ?>><?= e($name) ?> - <?= e($role) ?></option><?php endforeach; ?></select><select name="action_filter"><option value="">Semua Aksi</option><?php foreach($actionOptions as $action): ?><option value="<?= e($action) ?>" <?= $actionFilter===$action?'selected':'' ?>><?= e($action) ?></option><?php endforeach; ?></select><button>Filter</button><a href="<?= e(app_url('index.php?page=activity')) ?>">Reset</a></form>
+ <section class="activity-log-layout">
+  <section class="activity-table-panel"><header><h3><?= e(count($rows)) ?> Aktivitas</h3><span><?= e(count(array_unique(array_column($visible,'user_id')))) ?> aktor visible</span></header><div class="activity-table-scroll"><table><thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Modul</th><th>Deskripsi / Target</th><th>Status</th></tr></thead><tbody>
+  <?php foreach($pageRows as $row): $tone=$actionTone($row['action']); $module=$moduleOf($row); $failed=str_contains(strtolower($row['action'].' '.$row['detail']),'gagal'); ?><tr class="<?= $selectedId===(int)$row['id']?'selected':'' ?>" onclick="location.href='<?= e($activityUrl(['id'=>$row['id']])) ?>'"><td><b><?= e(date('d M Y',strtotime($row['created_at']))) ?></b><small><?= e(date('H:i:s',strtotime($row['created_at']))) ?> WIB</small></td><td><span class="activity-user"><i><?= e(strtoupper(substr($row['name'],0,2))) ?></i><span><b><?= e($row['name']) ?></b><small><?= e($row['role']) ?></small></span></span></td><td><span class="activity-action <?= e($tone) ?>"><?= e($row['action']) ?></span></td><td><?= e($module) ?></td><td><b><?= e($row['detail']) ?></b><small><?= e($row['task_title']??$row['project_title']??'Log umum') ?></small></td><td><span class="<?= $failed?'activity-failed':'activity-success' ?>"><?= $failed?'Failed':'Success' ?></span></td></tr><?php endforeach; ?>
+  <?php if(!$pageRows): ?><tr><td colspan="6"><div class="activity-empty"><h3>Data Tidak Ditemukan</h3><p>Belum ada activity log yang cocok dengan filter saat ini.</p><a href="<?= e(app_url('index.php?page=activity')) ?>">Reset Filter</a></div></td></tr><?php endif; ?></tbody></table></div><footer><span>Menampilkan <?= count($rows)?e(($currentPage-1)*$perPage+1):0 ?> - <?= e(min($currentPage*$perPage,count($rows))) ?> dari <?= e(count($rows)) ?> aktivitas</span><nav><?php for($p=1;$p<=$totalPages;$p++): ?><a class="<?= $p===$currentPage?'active':'' ?>" href="<?= e($activityUrl(['p'=>$p,'id'=>0])) ?>"><?= e($p) ?></a><?php endfor; ?></nav><b><?= e($perPage) ?> / halaman</b></footer></section>
+  <aside class="activity-detail-panel"><h3>Detail Aktivitas</h3><?php if($selected): $module=$moduleOf($selected); $targetUrl=get_activity_target_url($selected); ?><div class="activity-detail-icon">✎</div><span class="activity-success">Success</span><h4><?= e($selected['action']) ?>: <?= e($selected['detail']) ?></h4><section><h5>Informasi Umum</h5><dl><div><dt>Waktu</dt><dd><?= e(date('d M Y, H:i:s',strtotime($selected['created_at']))) ?> WIB</dd></div><div><dt>User</dt><dd><?= e($selected['name']) ?> <small><?= e($selected['role']) ?></small></dd></div><div><dt>Modul</dt><dd><?= e($module) ?></dd></div><div><dt>Aksi</dt><dd><?= e($selected['action']) ?></dd></div><div><dt>Target</dt><dd><?= e($selected['task_title']??$selected['project_title']??'Log umum') ?></dd></div></dl></section><section><h5>Catatan Audit</h5><p><?= e($selected['detail']) ?></p><small>Schema saat ini belum merekam IP address, user agent, atau data sebelum/sesudah perubahan.</small></section><?php if($targetUrl!=='index.php?page=activity'): ?><a class="activity-open-target" href="<?= e(app_url($targetUrl)) ?>">Buka <?= e($module) ?> Terkait</a><?php endif; ?><?php else: ?><p class="activity-empty">Pilih aktivitas untuk melihat detail.</p><?php endif; ?></aside>
+ </section>
 </div>
-
-<div class="mb-6 grid gap-4 md:grid-cols-4">
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p class="text-sm font-bold text-slate-500">Log Visible</p>
-        <strong class="mt-2 block text-3xl font-black"><?= e(count($visible)) ?></strong>
-    </div>
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p class="text-sm font-bold text-slate-500">Hasil Filter</p>
-        <strong class="mt-2 block text-3xl font-black"><?= e(count($rows)) ?></strong>
-    </div>
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p class="text-sm font-bold text-slate-500">Aktor Unik</p>
-        <strong class="mt-2 block text-3xl font-black"><?= e(count(array_unique(array_column($visible, 'user_id')))) ?></strong>
-    </div>
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p class="text-sm font-bold text-slate-500">Jenis Aktivitas</p>
-        <strong class="mt-2 block text-3xl font-black"><?= e(count($actionSummary)) ?></strong>
-    </div>
-</div>
-
-<form method="get" class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-    <input type="hidden" name="page" value="activity">
-    <div class="grid gap-3 lg:grid-cols-4">
-        <input class="rounded-xl border border-slate-200 px-4 py-3" name="action_filter" placeholder="Cari aksi/detail..." value="<?= e($actionFilter) ?>">
-        <input class="rounded-xl border border-slate-200 px-4 py-3" name="actor_filter" placeholder="Cari aktor/role..." value="<?= e($actorFilter) ?>">
-        <select class="rounded-xl border border-slate-200 px-4 py-3" name="target">
-            <?php foreach (['all'=>'Semua Target','project'=>'Terkait Project','task'=>'Terkait Task','general'=>'Umum'] as $key => $label): ?>
-                <option value="<?= e($key) ?>" <?= $targetFilter === $key ? 'selected' : '' ?>><?= e($label) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <button class="rounded-xl bg-orange-600 px-4 py-3 font-black text-white">Filter Log</button>
-    </div>
-</form>
-
-<?php if ($topActions): ?>
-<div class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-    <p class="mb-3 text-sm font-black text-slate-700">Top Activity</p>
-    <div class="flex flex-wrap gap-2">
-        <?php foreach ($topActions as $actionName => $count): ?>
-            <a class="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-200" href="index.php?page=activity&action_filter=<?= e(urlencode($actionName)) ?>"><?= e($actionName) ?> • <?= e($count) ?></a>
-        <?php endforeach; ?>
-    </div>
-</div>
-<?php endif; ?>
-
-<section class="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm iti-scrollbar">
-    <div class="grid min-w-[920px] grid-cols-5 gap-3 bg-slate-50 px-5 py-3 text-xs font-black uppercase text-slate-500">
-        <span>Waktu</span>
-        <span>Aktor</span>
-        <span>Aksi</span>
-        <span class="col-span-2">Detail / Target</span>
-    </div>
-    <?php foreach ($rows as $row): ?>
-        <?php $url = get_activity_target_url($row); ?>
-        <a href="<?= e($url) ?>" class="grid min-w-[920px] grid-cols-5 gap-3 border-t border-slate-100 px-5 py-4 text-sm hover:bg-slate-50">
-            <span><?= e(date('d M Y H:i', strtotime($row['created_at']))) ?></span>
-            <span><?= e($row['name']) ?> <small class="block text-slate-400"><?= e($row['role']) ?></small></span>
-            <span class="font-bold"><?= e($row['action']) ?></span>
-            <span class="col-span-2 text-slate-500">
-                <?= e($row['detail']) ?>
-                <small class="mt-1 block font-bold text-orange-600">
-                    <?= !empty($row['task_id']) ? 'Buka Task' : (!empty($row['project_id']) ? 'Buka Project' : 'Log umum') ?>
-                </small>
-            </span>
-        </a>
-    <?php endforeach; ?>
-    <?php if (!$rows): ?>
-        <div class="border-t border-slate-100 p-6 text-sm text-slate-500">Belum ada activity log yang cocok dengan filter.</div>
-    <?php endif; ?>
-</section>

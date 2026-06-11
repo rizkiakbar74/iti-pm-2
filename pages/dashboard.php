@@ -444,17 +444,17 @@ if ($user['role'] === 'ADMIN') {
     <section class="mt-4 grid gap-4 xl:grid-cols-12">
         <div class="dashboard-card dashboard-reveal p-5 xl:col-span-5" style="--reveal-delay:320ms">
             <div class="flex items-center justify-between"><h3 class="dashboard-section-title">Progress Project <span class="font-normal text-slate-400">(<?= e($period) ?> Bulan Terakhir)</span></h3><form method="get"><input type="hidden" name="page" value="dashboard"><select class="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold outline-none" name="period" onchange="this.form.submit()"><?php foreach ($allowedPeriods as $option): ?><option value="<?= e($option) ?>" <?= $period === $option ? 'selected' : '' ?>><?= e($option) ?> Bulan Terakhir</option><?php endforeach; ?></select></form></div>
-            <div class="relative mt-4 h-[205px] pl-8">
+            <div class="dashboard-line-chart relative mt-4 h-[205px] pl-8 <?= $period >= 12 ? 'is-dense' : '' ?>">
                 <div class="absolute bottom-0 left-8 right-0 top-0 border-b border-l border-slate-200">
                     <i class="dashboard-gridline absolute left-0 right-0 top-0"></i><i class="dashboard-gridline absolute left-0 right-0 top-1/4"></i><i class="dashboard-gridline absolute left-0 right-0 top-1/2"></i><i class="dashboard-gridline absolute left-0 right-0 top-3/4"></i>
                 </div>
                 <span class="absolute left-0 top-0 w-7 text-right text-[9px] text-slate-500">100%</span><span class="absolute left-0 top-1/4 w-7 text-right text-[9px] text-slate-500">75%</span><span class="absolute left-0 top-1/2 w-7 text-right text-[9px] text-slate-500">50%</span><span class="absolute left-0 top-3/4 w-7 text-right text-[9px] text-slate-500">25%</span>
                 <div class="absolute bottom-0 left-8 right-0 top-0 flex items-end justify-around px-4">
-                    <?php foreach ($chartRows as $index => $row): $pct = $progressSeries[$index]; ?>
+                    <?php foreach ($chartRows as $index => $row): $pct = $progressSeries[$index]; $showValue = $pct > 0 && ($period < 12 || $index === 0 || $pct !== $progressSeries[$index - 1]); ?>
                         <div class="relative h-full flex-1">
-                            <span class="absolute left-1/2 -translate-x-1/2 text-[9px] font-black" style="bottom: calc(<?= e($pct) ?>% + 8px)"><?= e($pct) ?>%</span>
+                            <span class="dashboard-progress-value <?= $showValue ? 'is-visible' : '' ?> absolute left-1/2 -translate-x-1/2 text-[9px] font-black" style="bottom: calc(<?= e($pct) ?>% + 12px)"><?= e($pct) ?>%</span>
                             <button class="dashboard-progress-point absolute left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full border-2 border-orange-500 bg-white" type="button" style="bottom: <?= e($pct) ?>%" data-label="<?= e($row['label']) ?>" data-percent="<?= e($pct) ?>" aria-label="<?= e($row['label']) ?>: <?= e($pct) ?> persen"></button>
-                            <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold text-slate-500"><?= e($row['label']) ?></span>
+                            <span class="dashboard-line-month absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold text-slate-500"><?= e($row['label']) ?></span>
                         </div>
                     <?php endforeach; ?>
                 </div>
